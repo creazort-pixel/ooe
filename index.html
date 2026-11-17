@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>모던 웹 계산기</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom smooth transition for button clicks */
+        .calc-btn {
+            transition: background-color 0.15s ease, transform 0.05s ease;
+        }
+        .calc-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 min-h-screen flex items-center justify-center p-4">
+
+    <!-- Calculator Container -->
+    <div class="w-full max-w-sm bg-slate-800/80 backdrop-blur-xl border border-slate-700/50 shadow-2xl rounded-3xl overflow-hidden p-6">
+        
+        <!-- Header / Title -->
+        <div class="flex justify-between items-center mb-4">
+            <span class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Modern Calculator</span>
+            <div class="flex space-x-1.5">
+                <div class="w-3 h-3 rounded-full bg-rose-500/80"></div>
+                <div class="w-3 h-3 rounded-full bg-amber-500/80"></div>
+                <div class="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+            </div>
+        </div>
+
+        <!-- Display Screen -->
+        <div class="bg-slate-950/60 border border-slate-700/40 rounded-2xl p-4 mb-6 text-right flex flex-col justify-end min-h-[100px] shadow-inner">
+            <!-- Previous Operation / History -->
+            <div id="previous-operand" class="text-slate-400 text-sm h-6 overflow-x-hidden whitespace-nowrap"></div>
+            <!-- Current Input -->
+            <div id="current-operand" class="text-white text-3xl sm:text-4xl font-bold tracking-tight overflow-x-hidden whitespace-nowrap">0</div>
+        </div>
+
+        <!-- Keypad Grid -->
+        <div class="grid grid-cols-4 gap-3">
+            <!-- Row 1: Clear, Delete, Percentage, Divide -->
+            <button onclick="clearAll()" class="calc-btn bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 font-semibold py-4 rounded-2xl text-lg border border-rose-500/20">AC</button>
+            <button onclick="deleteDigit()" class="calc-btn bg-slate-700/40 hover:bg-slate-700/70 text-slate-300 font-semibold py-4 rounded-2xl text-lg flex items-center justify-center border border-slate-600/30">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414-6.414a2 2 0 011.414-.586H19a2 2 0 012 2v12a2 2 0 01-2 2h-8.172a2 2 0 01-1.414-.586L3 12z" />
+                </svg>
+            </button>
+            <button onclick="appendPercent()" class="calc-btn bg-slate-700/40 hover:bg-slate-700/70 text-slate-300 font-semibold py-4 rounded-2xl text-lg border border-slate-600/30">%</button>
+            <button onclick="appendOperator('÷')" class="calc-btn bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 font-semibold py-4 rounded-2xl text-xl border border-indigo-500/30">÷</button>
+
+            <!-- Row 2: 7, 8, 9, Multiply -->
+            <button onclick="appendNumber('7')" class="calc-btn bg-slate-700/20 hover:bg-slate-700/40 text-white font-semibold py-4 rounded-2xl text-xl border border-slate-700/50">7</button>
+            <button onclick="appendNumber('8')" class="calc-btn bg-slate-700/20 hover:bg-slate-700/40 text-white font-semibold py-4 rounded-2xl text-xl border border-slate-700/50">8</button>
+            <button onclick="appendNumber('9')" class="calc-btn bg-slate-700/20 hover:bg-slate-700/40 text-white font-semibold py-4 rounded-2xl text-xl border border-slate-700/50">9</button>
+            <button onclick="appendOperator('×')" class="calc-btn bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 font-semibold py-4 rounded-2xl text-xl border border-indigo-500/30">×</button>
+
+            <!-- Row 3: 4, 5, 6, Subtract -->
+            <button onclick="appendNumber('4')" class="calc-btn bg-slate-700/20 hover:bg-slate-700/40 text-white font-semibold py-4 rounded-2xl text-xl border border-slate-700/50">4</button>
+            <button onclick="appendNumber('5')" class="calc-btn bg-slate-700/20 hover:bg-slate-700/40 text-white font-semibold py-4 rounded-2xl text-xl border border-slate-700/50">5</button>
+            <button onclick="appendNumber('6')" class="calc-btn bg-slate-700/20 hover:bg-slate-700/40 text-white font-semibold py-4 rounded-2xl text-xl border border-slate-700/50">6</button>
+            <button onclick="appendOperator('-')" class="calc-btn bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 font-semibold py-4 rounded-2xl text-xl border border-indigo-500/30">-</button>
+
+            <!-- Row 4: 1, 2, 3, Add -->
+            <button onclick="appendNumber('1')" class="calc-btn bg-slate-700/20 hover:bg-slate-700/40 text-white font-semibold py-4 rounded-2xl text-xl border border-slate-700/50">1</button>
+            <button onclick="appendNumber('2')" class="calc-btn bg-slate-700/20 hover:bg-slate-700/40 text-white font-semibold py-4 rounded-2xl text-xl border border-slate-700/50">2</button>
+            <button onclick="appendNumber('3')" class="calc-btn bg-slate-700/20 hover:bg-slate-700/40 text-white font-semibold py-4 rounded-2xl text-xl border border-slate-700/50">3</button>
+            <button onclick="appendOperator('+')" class="calc-btn bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 font-semibold py-4 rounded-2xl text-xl border border-indigo-500/30">+</button>
+
+            <!-- Row 5: 0, Dot, Equals -->
+            <button onclick="appendNumber('0')" class="calc-btn bg-slate-700/20 hover:bg-slate-700/40 text-white font-semibold py-4 rounded-2xl text-xl border border-slate-700/50 col-span-2">0</button>
+            <button onclick="appendDot()" class="calc-btn bg-slate-700/20 hover:bg-slate-700/40 text-white font-semibold py-4 rounded-2xl text-xl border border-slate-700/50">.</button>
+            <button onclick="compute()" class="calc-btn bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-4 rounded-2xl text-xl shadow-lg shadow-indigo-600/30">=</button>
+        </div>
+    </div>
+
+    <!-- Script Logic -->
+    <script>
+        let currentOperandText = '0';
+        let previousOperandText = '';
+        let operation = null;
+        let resetScreen = false;
+
+        const currentOperandEl = document.getElementById('current-operand');
+        const previousOperandEl = document.getElementById('previous-operand');
+
+        function updateDisplay() {
+            currentOperandEl.innerText = currentOperandText;
+            previousOperandEl.innerText = previousOperandText;
+        }
+
+        function appendNumber(number) {
+            if (currentOperandText === '0' || resetScreen) {
+                currentOperandText = number;
+                resetScreen = false;
+            } else {
+                currentOperandText += number;
+            }
+            updateDisplay();
+        }
+
+        function appendDot() {
+            if (resetScreen) {
+                currentOperandText = '0.';
+                resetScreen = false;
+                updateDisplay();
+                return;
+            }
+            if (!currentOperandText.includes('.')) {
+                currentOperandText += '.';
+            }
+            updateDisplay();
+        }
+
+        function appendOperator(op) {
+            if (operation !== null) compute();
+            previousOperandText = `${currentOperandText} ${op}`;
+            operation = op;
+            resetScreen = true;
+            updateDisplay();
+        }
+
+        function compute() {
+            let computation;
+            const prev = parseFloat(previousOperandText);
+            const current = parseFloat(currentOperandText);
+            if (isNaN(prev) || isNaN(current)) return;
+
+            switch (operation) {
+                case '+':
+                    computation = prev + current;
+                    break;
+                case '-':
+                    computation = prev - current;
+                    break;
+                case '×':
+                    computation = prev * current;
+                    break;
+                case '÷':
+                    if (current === 0) {
+                        showError("0으로 나눌 수 없습니다");
+                        return;
+                    }
+                    computation = prev / current;
+                    break;
+                default:
+                    return;
+            }
+
+            currentOperandText = parseFloat(computation.toFixed(10)).toString();
+            operation = null;
+            previousOperandText = '';
+            resetScreen = true;
+            updateDisplay();
+        }
+
+        function appendPercent() {
+            const current = parseFloat(currentOperandText);
+            if (isNaN(current)) return;
+            currentOperandText = (current / 100).toString();
+            updateDisplay();
+        }
+
+        function clearAll() {
+            currentOperandText = '0';
+            previousOperandText = '';
+            operation = null;
+            updateDisplay();
+        }
+
+        function deleteDigit() {
+            if (resetScreen) return;
+            if (currentOperandText.length === 1 || (currentOperandText.length === 2 && currentOperandText.startsWith('-'))) {
+                currentOperandText = '0';
+            } else {
+                currentOperandText = currentOperandText.slice(0, -1);
+            }
+            updateDisplay();
+        }
+
+        function showError(msg) {
+            currentOperandText = msg;
+            previousOperandText = '';
+            operation = null;
+            resetScreen = true;
+            updateDisplay();
+            setTimeout(() => {
+                clearAll();
+            }, 1500);
+        }
+
+        // Keyboard Support
+        window.addEventListener('keydown', e => {
+            if (e.key >= 0 && e.key <= 9) appendNumber(e.key);
+            if (e.key === '.') appendDot();
+            if (e.key === '=' || e.key === 'Enter') compute();
+            if (e.key === 'Backspace') deleteDigit();
+            if (e.key === 'Escape') clearAll();
+            if (e.key === '+') appendOperator('+');
+            if (e.key === '-') appendOperator('-');
+            if (e.key === '*') appendOperator('×');
+            if (e.key === '/') {
+                e.preventDefault();
+                appendOperator('÷');
+            }
+            if (e.key === '%') appendPercent();
+        });
+
+        updateDisplay();
+    </script>
+</body>
+</html>
