@@ -1,622 +1,135 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>정글 카운터픽 대시보드 (DeepLoL 스타일)</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <script>
-    tailwind.config = {
-      darkMode: "class",
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ["Inter", "Pretendard", "-apple-system", "BlinkMacSystemFont", "Malgun Gothic", "sans-serif"]
-          },
-          colors: {
-            deep: {
-              bg: "#090c14",
-              panel: "#0f1422",
-              row: "#131929",
-              rowHover: "#192136",
-              border: "#222b42",
-              text: "#f1f5f9",
-              muted: "#8a96b4",
-              blue: "#3b82f6",
-              tag: "#1b243b",
-              tagBorder: "#2c3857"
-            }
-          }
-        }
-      }
-    };
-  </script>
-  <style>
-    body {
-      background-color: #090c14;
-      color: #f1f5f9;
-      font-family: "Inter", "Pretendard", -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif;
-      overflow-x: hidden;
-    }
-  </style>
-</head>
-<body class="min-h-screen bg-deep-bg text-deep-text antialiased selection:bg-blue-500/30 selection:text-white">
-  <div class="w-full max-w-6xl mx-auto px-3 sm:px-6 py-5 sm:py-8">
-    <!-- 상단 헤더 & 필터/정렬 컨트롤 -->
-    <header class="bg-deep-panel border border-deep-border rounded-2xl p-4 sm:p-6 mb-4 shadow-xl">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-        <div class="flex items-center gap-2.5 flex-wrap">
-          <h1 class="text-lg sm:text-2xl font-extrabold tracking-tight text-white">
-            정글 카운터픽 대시보드
-          </h1>
-          <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-blue-500/15 text-blue-300 border border-blue-500/35">
-            DeepLoL 다크 · 1~5티어
-          </span>
-        </div>
-
-        <a
-          href="https://lol.ps/statistics"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold bg-deep-row hover:bg-deep-rowHover text-blue-300 hover:text-blue-200 border border-deep-border transition-colors w-fit"
-        >
-          <span>PS 챔피언 통계</span>
-          <span aria-hidden="true">↗</span>
-        </a>
-      </div>
-
-      <!-- 왼쪽 상대 챔피언 검색창 -->
-      <div class="relative mb-4">
-        <input
-          type="text"
-          id="searchInput"
-          autocomplete="off"
-          placeholder="왼쪽 상대 챔피언 이름, 초성 또는 영타 검색 (예: ㄴㅍㄹ, wdf, 리신, 자이라)"
-          class="w-full bg-deep-bg border border-deep-border focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl pl-4 pr-11 py-3 text-sm sm:text-base text-white placeholder-deep-muted outline-none transition-all"
-        />
-        <button
-          type="button"
-          id="clearSearchBtn"
-          aria-label="검색어 지우기"
-          class="hidden absolute right-3 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-lg text-xs font-semibold text-deep-muted hover:text-white bg-deep-row hover:bg-deep-rowHover border border-deep-border cursor-pointer transition-colors"
-        >
-          초기화
-        </button>
-      </div>
-
-      <!-- 티어 필터 & 정렬 버튼 -->
-      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-        <div class="flex items-center gap-1.5 flex-wrap" id="tierGroup" role="group" aria-label="티어 필터">
-          <button type="button" data-tier="ALL" class="tier-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer"></button>
-          <button type="button" data-tier="1" class="tier-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer"></button>
-          <button type="button" data-tier="2" class="tier-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer"></button>
-          <button type="button" data-tier="3" class="tier-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer"></button>
-          <button type="button" data-tier="4" class="tier-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer"></button>
-          <button type="button" data-tier="5" class="tier-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer"></button>
-        </div>
-
-        <div class="flex items-center gap-1.5 flex-wrap" id="sortGroup" role="group" aria-label="정렬 기준">
-          <button type="button" data-sort="TIER" class="sort-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold border transition-all cursor-pointer"></button>
-          <button type="button" data-sort="DEFAULT" class="sort-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold border transition-all cursor-pointer"></button>
-          <button type="button" data-sort="ALPHA" class="sort-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold border transition-all cursor-pointer"></button>
-        </div>
-      </div>
-    </header>
-
-    <!-- 상태 요약 바 -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1 mb-3 text-xs sm:text-sm text-deep-muted">
-      <div id="summaryText" class="font-medium">불러오는 중...</div>
-      <div class="flex items-center gap-2 flex-wrap">
-        <span id="ddragonPatchBadge" class="text-xs text-deep-muted">DDragon 패치 확인 중...</span>
-        <span>·</span>
-        <button
-          type="button"
-          id="resetAllCountersBtn"
-          class="hidden text-xs font-semibold text-blue-300 hover:text-blue-200 underline underline-offset-2 cursor-pointer transition-colors"
-        >
-          커스텀 카운터 전체 초기화
-        </button>
-        <span id="resetAllDivider" class="hidden">·</span>
-        <span>티어 배지는 왼쪽 상대 챔피언에만 표시됩니다</span>
-      </div>
-    </div>
-
-    <!-- 데스크톱 1줄 컬럼 헤더 -->
-    <div class="hidden md:grid grid-cols-[minmax(250px,1fr)_minmax(0,1.65fr)] items-center px-5 py-2.5 mb-2 rounded-xl bg-deep-panel/80 border border-deep-border/70 text-xs font-bold text-deep-muted tracking-wider">
-      <span>티어 · 상대 챔피언 (ENEMY JUNGLE)</span>
-      <span class="text-right">추천 카운터픽 (COUNTER PICKS)</span>
-    </div>
-
-    <!-- 1줄 가로 카드 리스트 -->
-    <main id="matchupList" class="flex flex-col gap-2.5"></main>
-
-    <!-- 빈 결과 안내 -->
-    <div id="emptyState" class="hidden bg-deep-panel border border-deep-border rounded-2xl py-14 px-6 text-center mt-4">
-      <p class="text-deep-text font-semibold text-base mb-1">조건에 맞는 상대 챔피언이 없습니다.</p>
-      <p class="text-deep-muted text-sm mb-4">검색어 또는 선택된 티어 필터를 초기화해 보세요.</p>
-      <button
-        type="button"
-        id="resetFiltersBtn"
-        class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold transition-colors cursor-pointer"
-      >
-        전체 초기화
-      </button>
-    </div>
-  </div>
-
-  <!-- 카운터픽 수정 모달 -->
-  <div
-    id="counterEditorModal"
-    class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="editorModalTitle"
-  >
-    <div class="w-full max-w-xl bg-deep-panel border border-deep-border rounded-2xl shadow-2xl overflow-hidden">
-      <div class="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 border-b border-deep-border bg-deep-row/70">
-        <div class="flex items-center gap-2.5 min-w-0">
-          <span id="editorTargetTierBadge" class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-extrabold border shrink-0"></span>
-          <div id="editorTargetIcon" class="shrink-0"></div>
-          <div class="min-w-0">
-            <h2 id="editorModalTitle" class="text-base sm:text-lg font-extrabold text-white truncate">카운터픽 수정</h2>
-            <p class="text-xs text-deep-muted">카운터 챔피언 추가 및 삭제가 즉시 저장됩니다.</p>
-          </div>
-        </div>
-        <button
-          type="button"
-          id="closeEditorModalBtn"
-          aria-label="창 닫기"
-          class="w-9 h-9 rounded-xl bg-deep-bg hover:bg-deep-rowHover border border-deep-border text-deep-muted hover:text-white flex items-center justify-center font-bold cursor-pointer transition-colors shrink-0"
-        >
-          ✕
-        </button>
-      </div>
-
-      <div class="p-4 sm:p-6 space-y-5 max-h-[82vh] overflow-y-auto">
-        <!-- 현재 등록된 카운터픽 목록 -->
-        <div>
-          <div class="flex items-center justify-between gap-2 mb-2.5">
-            <span class="text-xs sm:text-sm font-bold text-slate-200">현재 카운터픽</span>
-            <button
-              type="button"
-              id="resetRowCountersBtn"
-              class="text-xs font-semibold text-blue-300 hover:text-blue-200 bg-deep-row hover:bg-deep-rowHover border border-deep-border px-2.5 py-1 rounded-lg cursor-pointer transition-colors"
-            >
-              이 줄 기본값 복원
-            </button>
-          </div>
-          <div id="editorCurrentCounters" class="flex flex-wrap gap-2 min-h-[42px] p-3 rounded-xl bg-deep-bg border border-deep-border"></div>
-        </div>
-
-        <!-- 카운터 챔피언 직접 추가 -->
-        <div>
-          <label for="editorCounterInput" class="block text-xs sm:text-sm font-bold text-slate-200 mb-2">
-            카운터 챔피언 추가 (한글명·별칭·초성·영문 두벌식 지원)
-          </label>
-          <div class="flex items-center gap-2">
-            <input
-              type="text"
-              id="editorCounterInput"
-              autocomplete="off"
-              placeholder="예: 리신, ㅋㅈㅅ, shryt 또는 목록에서 선택"
-              class="flex-1 bg-deep-bg border border-deep-border focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-deep-muted outline-none transition-all"
-            />
-            <button
-              type="button"
-              id="addCounterSubmitBtn"
-              class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold cursor-pointer transition-colors shrink-0"
-            >
-              추가
-            </button>
-          </div>
-          <p id="editorFeedbackMsg" class="hidden mt-2 text-xs font-medium"></p>
-
-          <!-- 빠른 선택 챔피언 칩 -->
-          <div class="mt-3">
-            <div class="text-xs text-deep-muted mb-2">빠른 선택 추천·정글 챔피언</div>
-            <div id="editorQuickPickList" class="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto p-2.5 rounded-xl bg-deep-bg/80 border border-deep-border"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="flex items-center justify-end gap-2 px-4 sm:px-6 py-3.5 border-t border-deep-border bg-deep-row/50">
-        <button
-          type="button"
-          id="doneEditorModalBtn"
-          class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold cursor-pointer transition-colors"
-        >
-          완료
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    /**
-     * 1티어 ~ 5티어 전체 58개 정글 챔피언 티어 맵
-     */
-    const JUNGLE_TIER_MAP = {
-      // 1티어 (3명)
-      "리 신": 1,
-      "니달리": 1,
-      "자이라": 1,
-
-      // 2티어 (16명)
-      "나피리": 2,
-      "탈리야": 2,
-      "오공": 2,
-      "바이": 2,
-      "엘리스": 2,
-      "사일러스": 2,
-      "릴리아": 2,
-      "자크": 2,
-      "렉사이": 2,
-      "신 짜오": 2,
-      "자르반 4세": 2,
-      "워윅": 2,
-      "스카너": 2,
-      "자헨": 2,
-      "에코": 2,
-      "킨드레드": 2,
-
-      // 3티어 (14명)
-      "람머스": 3,
-      "초가스": 3,
-      "브라이어": 3,
-      "탈론": 3,
-      "이블린": 3,
-      "아트록스": 3,
-      "피들스틱": 3,
-      "헤카림": 3,
-      "케인": 3,
-      "세주아니": 3,
-      "카서스": 3,
-      "카직스": 3,
-      "그라가스": 3,
-      "누누와 윌럼프": 3,
-
-      // 4티어 (19명)
-      "그레이브즈": 4,
-      "아이번": 4,
-      "뽀삐": 4,
-      "녹턴": 4,
-      "벨베스": 4,
-      "비에고": 4,
-      "렝가": 4,
-      "키아나": 4,
-      "우디르": 4,
-      "제드": 4,
-      "마스터 이": 4,
-      "샤코": 4,
-      "판테온": 4,
-      "피즈": 4,
-      "암베사": 4,
-      "제이스": 4,
-      "로크": 4,
-      "트런들": 4,
-      "쉬바나": 4,
-
-      // 5티어 (6명)
-      "퀸": 5,
-      "그웬": 5,
-      "마오카이": 5,
-      "다이애나": 5,
-      "잭스": 5,
-      "아무무": 5
-    };
-
-    /**
-     * 챔피언 표기 변형/별칭 정규화 맵
-     */
-    const CHAMPION_ALIAS_MAP = {
-      "다이에나": "다이애나",
-      "다이애나": "다이애나",
-      "신짜오": "신 짜오",
-      "신 짜오": "신 짜오",
-      "탈리아": "탈리야",
-      "탈리야": "탈리야",
-      "그브": "그레이브즈",
-      "그레이브즈": "그레이브즈",
-      "킨드": "킨드레드",
-      "킨드레드": "킨드레드",
-      "쟈크": "자크",
-      "자크": "자크",
-      "누누": "누누와 윌럼프",
-      "누누와 윌럼프": "누누와 윌럼프",
-      "자르반": "자르반 4세",
-      "자르반 4세": "자르반 4세",
-      "마스터이": "마스터 이",
-      "마스터 이": "마스터 이",
-      "피들": "피들스틱",
-      "피들스틱": "피들스틱",
-      "리신": "리 신",
-      "리 신": "리 신",
-      "나서스": "나서스",
-      "브랜드": "브랜드"
-    };
-
-    /**
-     * 라이엇 Data Dragon 공식 챔피언 ID 매핑
-     */
-    const CHAMPION_DDRAGON_ID_MAP = {
-      "리 신": "LeeSin",
-      "리신": "LeeSin",
-      "니달리": "Nidalee",
-      "자이라": "Zyra",
-      "나피리": "Naafiri",
-      "탈리야": "Taliyah",
-      "탈리아": "Taliyah",
-      "오공": "MonkeyKing",
-      "바이": "Vi",
-      "엘리스": "Elise",
-      "사일러스": "Sylas",
-      "릴리아": "Lillia",
-      "자크": "Zac",
-      "쟈크": "Zac",
-      "렉사이": "RekSai",
-      "신 짜오": "XinZhao",
-      "신짜오": "XinZhao",
-      "자르반 4세": "JarvanIV",
-      "자르반": "JarvanIV",
-      "워윅": "Warwick",
-      "스카너": "Skarner",
-      "자헨": "Zaheen",
-      "에코": "Ekko",
-      "킨드레드": "Kindred",
-      "킨드": "Kindred",
-      "람머스": "Rammus",
-      "초가스": "Chogath",
-      "브라이어": "Briar",
-      "탈론": "Talon",
-      "이블린": "Evelynn",
-      "아트록스": "Aatrox",
-      "피들스틱": "Fiddlesticks",
-      "피들": "Fiddlesticks",
-      "헤카림": "Hecarim",
-      "케인": "Kayn",
-      "세주아니": "Sejuani",
-      "카서스": "Karthus",
-      "카직스": "Khazix",
-      "그라가스": "Gragas",
-      "누누와 윌럼프": "Nunu",
-      "누누": "Nunu",
-      "그레이브즈": "Graves",
-      "그브": "Graves",
-      "아이번": "Ivern",
-      "뽀삐": "Poppy",
-      "녹턴": "Nocturne",
-      "벨베스": "Belveth",
-      "비에고": "Viego",
-      "렝가": "Rengar",
-      "키아나": "Qiyana",
-      "우디르": "Udyr",
-      "제드": "Zed",
-      "마스터 이": "MasterYi",
-      "마스터이": "MasterYi",
-      "샤코": "Shaco",
-      "판테온": "Pantheon",
-      "피즈": "Fizz",
-      "암베사": "Ambessa",
-      "제이스": "Jayce",
-      "로크": "Roku",
-      "트런들": "Trundle",
-      "쉬바나": "Shyvana",
-      "퀸": "Quinn",
-      "그웬": "Gwen",
-      "마오카이": "Maokai",
-      "다이애나": "Diana",
-      "다이에나": "Diana",
-      "잭스": "Jax",
-      "아무무": "Amumu",
-      "나서스": "Nasus",
-      "브랜드": "Brand"
-    };
-
-    const DDRAGON_FALLBACK_VERSIONS = ["16.1.1", "15.1.1", "14.24.1"];
-    let activeDDragonVersion = DDRAGON_FALLBACK_VERSIONS[0];
-
-    function getChampionSquareIconUrl(name, version = activeDDragonVersion) {
-      const canonical = CHAMPION_ALIAS_MAP[name] || name;
-      const ddragonId = CHAMPION_DDRAGON_ID_MAP[name] || CHAMPION_DDRAGON_ID_MAP[canonical];
-      if (!ddragonId) return "";
-      return `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${ddragonId}.png`;
-    }
-
-    /**
-     * 정글 카운터픽 데이터 (우측 카운터픽 태그에는 티어를 붙이지 않음)
-     */
-    const RAW_COUNTER_MATCHUPS = [
-      { target: "다이에나", counters: ["녹턴"] },
-      { target: "나피리", counters: ["녹턴"] },
-      { target: "신짜오", counters: ["녹턴", "트런들", "카직스"] },
-      { target: "릴리아", counters: ["녹턴", "암베사", "자르반"] },
-      { target: "제이스", counters: ["녹턴", "신짜오"] },
-      { target: "스카너", counters: ["녹턴"] },
-      { target: "탈리야", counters: ["녹턴", "자르반"] },
-      { target: "자이라", counters: ["녹턴", "샤코"] },
-      { target: "퀸", counters: ["녹턴"] },
-      { target: "바이", counters: ["자이라"] },
-      { target: "니달리", counters: ["자이라", "다이에나"] },
-      { target: "엘리스", counters: ["자이라", "나피리", "카서스"] },
-      { target: "오공", counters: ["자이라", "탈리아", "신짜오"] },
-      { target: "워윅", counters: ["자이라", "탈리아", "카서스"] },
-      { target: "그레이브즈", counters: ["자이라", "카서스", "브랜드"] },
-      { target: "판테온", counters: ["자이라", "신짜오", "오공", "브랜드", "탈리아"] },
-      { target: "브라이어", counters: ["자이라", "탈리아"] },
-      { target: "리신", counters: ["뽀삐", "바이"] },
-      { target: "벨베스", counters: ["뽀삐", "탈리아"] },
-      { target: "렉사이", counters: ["그브", "탈리아", "판테온"] },
-      { target: "사일러스", counters: ["판테온"] },
-      { target: "녹턴", counters: ["리신"] },
-      { target: "케인", counters: ["리신", "킨드레드"] },
-      { target: "탈론", counters: ["리신", "암베사"] },
-      { target: "나서스", counters: ["녹턴", "신짜오", "워윅"] },
-      { target: "킨드레드", counters: ["트런들", "리신"] },
-      { target: "헤카림", counters: ["그브", "킨드", "비에고"] },
-      { target: "마스터이", counters: ["리신"] },
-      { target: "카직스", counters: ["리신", "암베사"] },
-      { target: "쟈크", counters: ["뽀삐", "리신"] },
-      { target: "샤코", counters: ["그브"] },
-      { target: "자르반", counters: ["리신"] },
-      { target: "에코", counters: ["사일러스"] },
-      { target: "비에고", counters: ["리신"] },
-      { target: "로크", counters: ["리신"] },
-      { target: "키아나", counters: ["판테온", "아무무"] },
-      { target: "아트록스", counters: ["신짜오"] },
-      { target: "카서스", counters: ["케인"] },
-      { target: "이블린", counters: ["리신", "헤카림"] },
-      { target: "누누", counters: ["아무무", "세주아니", "스카너"] },
-      { target: "우디르", counters: ["리신"] },
-      { target: "쉬바나", counters: ["리신"] },
-      { target: "잭스", counters: ["릴리아", "초가스"] },
-      { target: "피즈", counters: ["신짜오"] },
-      { target: "암베사", counters: ["뽀삐", "그레이브즈"] },
-      { target: "뽀삐", counters: ["트런들"] },
-      { target: "람머스", counters: ["릴리아"] },
-      { target: "세주아니", counters: ["녹턴", "신짜오", "워윅"] },
-      { target: "피들", counters: ["케인"] },
-      { target: "제드", counters: ["리신"] },
-      { target: "렝가", counters: ["람머스", "세주아니", "아무무"] }
+// ... existing code ...
+    // 한글 초성 추출 및 영문 두벌식(QWERTY) 자판 변환 유틸리티
+    const CHOSUNG_TABLE = [
+      "ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ",
+      "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"
     ];
 
-    function resolveTier(name) {
-      const canonical = CHAMPION_ALIAS_MAP[name] || name;
-      return JUNGLE_TIER_MAP[canonical] || 5;
+    const JUNGSUNG_TABLE = [
+      "ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ", "ㅔ", "ㅕ", "ㅖ", "ㅗ", "ㅘ",
+      "ㅙ", "ㅚ", "ㅛ", "ㅜ", "ㅝ", "ㅞ", "ㅟ", "ㅠ", "ㅡ", "ㅢ", "ㅣ"
+    ];
+
+    const JONGSUNG_TABLE = [
+      "", "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄹ", "ㄺ",
+      "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ", "ㅁ", "ㅂ", "ㅄ", "ㅅ",
+      "ㅆ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"
+    ];
+
+    const QWERTY_TO_JAMO = {
+      q: "ㅂ", w: "ㅈ", e: "ㄷ", r: "ㄱ", t: "ㅅ",
+      y: "ㅛ", u: "ㅕ", i: "ㅑ", o: "ㅐ", p: "ㅔ",
+      a: "ㅁ", s: "ㄴ", d: "ㅇ", f: "ㄹ", g: "ㅎ",
+      h: "ㅗ", j: "ㅓ", k: "ㅏ", l: "ㅣ",
+      z: "ㅋ", x: "ㅌ", c: "ㅊ", v: "ㅍ", b: "ㅠ", n: "ㅜ", m: "ㅡ",
+      Q: "ㅃ", W: "ㅉ", E: "ㄸ", R: "ㄲ", T: "ㅆ",
+      O: "ㅒ", P: "ㅖ"
+    };
+
+    const DOUBLE_JUNGSUNG_MAP = {
+      "ㅗㅏ": "ㅘ",
+      "ㅗㅐ": "ㅙ",
+      "ㅗㅣ": "ㅚ",
+      "ㅜㅓ": "ㅝ",
+      "ㅜㅔ": "ㅞ",
+      "ㅜㅣ": "ㅟ",
+      "ㅡㅣ": "ㅢ"
+    };
+
+    const DOUBLE_JONGSUNG_MAP = {
+      "ㄱㅅ": "ㄳ",
+      "ㄴㅈ": "ㄵ",
+      "ㄴㅎ": "ㄶ",
+      "ㄹㄱ": "ㄺ",
+      "ㄹㅁ": "ㄻ",
+      "ㄹㅂ": "ㄼ",
+      "ㄹㅅ": "ㄽ",
+      "ㄹㅌ": "ㄾ",
+      "ㄹㅍ": "ㄿ",
+      "ㄹㅎ": "ㅀ",
+      "ㅂㅅ": "ㅄ"
+    };
+
+    const SPLIT_DOUBLE_JONGSUNG_MAP = {
+      "ㄳ": ["ㄱ", "ㅅ"],
+      "ㄵ": ["ㄴ", "ㅈ"],
+      "ㄶ": ["ㄴ", "ㅎ"],
+      "ㄺ": ["ㄹ", "ㄱ"],
+      "ㄻ": ["ㄹ", "ㅁ"],
+      "ㄼ": ["ㄹ", "ㅂ"],
+      "ㄽ": ["ㄹ", "ㅅ"],
+      "ㄾ": ["ㄹ", "ㅌ"],
+      "ㄿ": ["ㄹ", "ㅍ"],
+      "ㅀ": ["ㄹ", "ㅎ"],
+      "ㅄ": ["ㅂ", "ㅅ"]
+    };
+
+    const VOWEL_JAMO_SET = new Set([
+      "ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ", "ㅔ", "ㅕ", "ㅖ",
+      "ㅗ", "ㅘ", "ㅙ", "ㅚ", "ㅛ", "ㅜ", "ㅝ", "ㅞ", "ㅟ", "ㅠ", "ㅡ", "ㅢ", "ㅣ"
+    ]);
+
+    function isVowelJamo(jamo) {
+      return VOWEL_JAMO_SET.has(jamo);
     }
 
-    const CUSTOM_COUNTERS_STORAGE_KEY = "jungle_counter_dashboard_custom_v1";
+    function isJongsungJamo(jamo) {
+      return JONGSUNG_TABLE.includes(jamo) && jamo !== "";
+    }
 
-    function loadCustomCountersFromStorage() {
-      try {
-        const raw = window.localStorage.getItem(CUSTOM_COUNTERS_STORAGE_KEY);
-        if (!raw) return {};
-        const parsed = JSON.parse(raw);
-        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
-        const sanitized = {};
-        Object.keys(parsed).forEach((key) => {
-          if (Array.isArray(parsed[key])) {
-            sanitized[key] = parsed[key]
-              .filter((item) => typeof item === "string" && item.trim().length > 0)
-              .map((item) => item.trim());
-          }
-        });
-        return sanitized;
-      } catch (_err) {
-        return {};
+    function composeSyllable(cho, jung, jong = "") {
+      const choIdx = CHOSUNG_TABLE.indexOf(cho);
+      const jungIdx = JUNGSUNG_TABLE.indexOf(jung);
+      const jongIdx = JONGSUNG_TABLE.indexOf(jong);
+      if (choIdx < 0 || jungIdx < 0 || jongIdx < 0) return null;
+      return String.fromCharCode(0xAC00 + choIdx * 588 + jungIdx * 28 + jongIdx);
+    }
+
+    function convertQwertyToHangul(text) {
+      let out = "";
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        out += QWERTY_TO_JAMO[ch] || ch;
       }
+      return out;
     }
 
-    let customCountersMap = loadCustomCountersFromStorage();
-
-    function saveCustomCountersToStorage() {
-      try {
-        window.localStorage.setItem(CUSTOM_COUNTERS_STORAGE_KEY, JSON.stringify(customCountersMap));
-      } catch (_err) {
-        // 저장소 접근 제한 시 메모리 상태만 유지
+    function composeKoreanFromQwerty(rawText) {
+      const lower = (rawText || "").toLowerCase();
+      let jamoSeq = "";
+      for (let i = 0; i < lower.length; i++) {
+        const mapped = QWERTY_TO_JAMO[rawText[i]] || QWERTY_TO_JAMO[lower[i]] || lower[i];
+        jamoSeq += mapped;
       }
-    }
 
-    const BASE_MATCHUPS = RAW_COUNTER_MATCHUPS.map((entry, idx) => ({
-      order: idx,
-      target: entry.target,
-      tier: resolveTier(entry.target),
-      defaultCounters: [...entry.counters]
-    }));
+      let result = "";
+      let state = "IDLE";
+      let cho = "";
+      let jung = "";
+      let jong = "";
 
-    function getActiveCounters(item) {
-      if (Object.prototype.hasOwnProperty.call(customCountersMap, item.target)) {
-        return [...customCountersMap[item.target]];
-      }
-      return [...item.defaultCounters];
-    }
-
-    function hasCustomCounterOverride(item) {
-      if (!Object.prototype.hasOwnProperty.call(customCountersMap, item.target)) return false;
-      const current = customCountersMap[item.target];
-      const base = item.defaultCounters;
-      if (current.length !== base.length) return true;
-      return current.some((name, idx) => name !== base[idx]);
-    }
-
-    function getAllKnownChampions() {
-      const seen = new Set();
-      const list = [];
-      const pushName = (raw) => {
-        const cleaned = (raw || "").trim();
-        if (!cleaned) return;
-        const canonical = CHAMPION_ALIAS_MAP[cleaned] || cleaned;
-        const key = canonical.replace(/\s+/g, "").toLowerCase();
-        if (!seen.has(key)) {
-          seen.add(key);
-          list.push(canonical);
+      function flush() {
+        if (state === "IDLE") return;
+        if (state === "CHO") {
+          result += cho;
+        } else if (state === "JUNG") {
+          result += composeSyllable(cho, jung, "") || (cho + jung);
+        } else if (state === "JONG") {
+          result += composeSyllable(cho, jung, jong) || (cho + jung + jong);
         }
-      };
-
-      Object.keys(JUNGLE_TIER_MAP).forEach(pushName);
-      Object.keys(CHAMPION_ALIAS_MAP).forEach(pushName);
-      Object.keys(CHAMPION_DDRAGON_ID_MAP).forEach(pushName);
-      BASE_MATCHUPS.forEach((m) => {
-        pushName(m.target);
-        m.defaultCounters.forEach(pushName);
-      });
-      Object.values(customCountersMap).forEach((arr) => {
-        if (Array.isArray(arr)) arr.forEach(pushName);
-      });
-
-      return list.sort((a, b) => a.localeCompare(b, "ko"));
-    }
-
-    function normalizeCounterInputName(rawInput) {
-      const trimmed = (rawInput || "").trim();
-      if (!trimmed) return "";
-      if (CHAMPION_ALIAS_MAP[trimmed]) {
-        return CHAMPION_ALIAS_MAP[trimmed];
+        state = "IDLE";
+        cho = "";
+        jung = "";
+        jong = "";
       }
-      const compact = trimmed.replace(/\s+/g, "").toLowerCase();
-      const converted = convertQwertyToHangul(compact).replace(/\s+/g, "").toLowerCase();
-      const allKnown = getAllKnownChampions();
 
-      const exactMatch = allKnown.find((champ) => {
-        const cCompact = champ.replace(/\s+/g, "").toLowerCase();
-        const aliasTarget = (CHAMPION_ALIAS_MAP[champ] || champ).replace(/\s+/g, "").toLowerCase();
-        return cCompact === compact || aliasTarget === compact || cCompact === converted || aliasTarget === converted;
-      });
-      if (exactMatch) return exactMatch;
+      for (let i = 0; i < jamoSeq.length; i++) {
+        const cur = jamoSeq[i];
+        const isVow = isVowelJamo(cur);
+        const isCho = CHOSUNG_TABLE.includes(cur);
 
-      const partialMatch = allKnown.find((champ) => {
-        const cCompact = champ.replace(/\s+/g, "").toLowerCase();
-        return (
-          (compact.length >= 2 && cCompact.includes(compact)) ||
-          (converted.length >= 2 && cCompact.includes(converted))
-        );
-      });
-      if (partialMatch) return partialMatch;
-
-      return trimmed;
-    }
-
-    function getMatchupsSnapshot() {
-      return BASE_MATCHUPS.map((item) => ({
-        order: item.order,
-        target: item.target,
-        tier: item.tier,
-        counters: getActiveCounters(item),
-        defaultCounters: item.defaultCounters,
-        isCustomized: hasCustomCounterOverride(item)
-      }));
-    }
-
-    // 티어순(1티어 -> 5티어)을 기본 베이스로 삼되, 동일 티어 내에서는 원래 순서를 유지
-    function getTierBaseMatchups() {
-      return getMatchupsSnapshot().sort(
-        (a, b) => a.tier - b.tier || a.order - b.order
-      );
-    }
-
-    // 한글 초성 추출 및 영문 두벌식(QWERTY) 자판 변환 유틸리티
+        if (state === "IDLE") {
+          if (isCho) {
             cho = cur;
             state = "CHO";
           } else {
@@ -680,228 +193,32 @@
       };
     }
 
-    function extractChosung(text) {
-      let out = "";
-      for (let i = 0; i < text.length; i++) {
-        const code = text.charCodeAt(i);
-        if (code >= 0xAC00 && code <= 0xD7A3) {
-          out += CHOSUNG_TABLE[Math.floor((code - 0xAC00) / 588)];
-        } else {
-          out += text[i];
-        }
-      }
-      return out;
-    }
-
-    function isOnlyChosung(text) {
-      return /^[ㄱ-ㅎ]+$/.test(text);
-    }
-
-    /**
-     * 왼쪽 상대 챔피언 이름, 한글 초성 및 두벌식 영타 입력에 대해 검색 매칭 수행
-     */
-    function matchesOpponentChampion(targetName, rawQuery) {
-      const compactQuery = rawQuery.replace(/\s+/g, "").toLowerCase();
-      if (!compactQuery) return true;
-
-      const canonicalName = CHAMPION_ALIAS_MAP[targetName] || targetName;
-      const candidates = [
-        targetName.replace(/\s+/g, "").toLowerCase(),
-        canonicalName.replace(/\s+/g, "").toLowerCase()
-      ];
-
-      const { jamoOnly, composed } = composeKoreanFromQwerty(compactQuery);
-      const queryVariants = Array.from(
-        new Set([compactQuery, jamoOnly.toLowerCase(), composed.toLowerCase()].filter(Boolean))
-      );
-
-      for (const cand of candidates) {
-        const candChosung = extractChosung(cand).toLowerCase();
-        for (const q of queryVariants) {
-          if (cand.includes(q)) return true;
-          if (isOnlyChosung(q) && candChosung.includes(q)) return true;
-        }
-      }
-      return false;
-    }
-
-    function getTierBadgeStyle(tier) {
-      switch (tier) {
-        case 1:
-          return "bg-rose-500/15 text-rose-300 border-rose-500/40";
-        case 2:
-          return "bg-blue-500/15 text-blue-300 border-blue-500/40";
-        case 3:
-          return "bg-teal-400/15 text-teal-300 border-teal-400/40";
-        case 4:
-          return "bg-slate-400/15 text-slate-300 border-slate-400/35";
-        default:
-          return "bg-zinc-500/15 text-zinc-400 border-zinc-500/30";
-      }
-    }
-
-    function getAvatarPalette(name) {
-      let hash = 0;
-      for (let i = 0; i < name.length; i++) {
-        hash = name.charCodeAt(i) + ((hash << 5) - hash);
-      }
-      const palettes = [
-        { from: "#26365c", to: "#151d33", ring: "#4f86ff" },
-        { from: "#4a2338", to: "#24121d", ring: "#ff5d6c" },
-        { from: "#1b4347", to: "#0f2427", ring: "#2dd4bf" },
-        { from: "#3b2c5e", to: "#1d1630", ring: "#a78bfa" },
-        { from: "#4d381e", to: "#261b0e", ring: "#fbbf24" }
-      ];
-      return palettes[Math.abs(hash) % palettes.length];
-    }
-
-    function createInitialFallbackSvg(label, sizeClass) {
-      const char = (label || "?").trim().charAt(0);
-      const pal = getAvatarPalette(label);
-      const gradId = `g_${char.charCodeAt(0)}_${Math.abs(label.length * 17)}`;
-      return `
-        <svg class="${sizeClass} rounded-xl shrink-0 select-none" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-          <defs>
-            <linearGradient id="${gradId}" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="${pal.from}" />
-              <stop offset="100%" stop-color="${pal.to}" />
-            </linearGradient>
-          </defs>
-          <rect width="40" height="40" rx="11" fill="url(#${gradId})" stroke="${pal.ring}" stroke-opacity="0.45" stroke-width="1.5" />
-          <text x="20" y="25" text-anchor="middle" fill="#f8fafc" font-size="15" font-weight="800" font-family="Inter, Pretendard, sans-serif">${char}</text>
-        </svg>
-      `;
-    }
-
-    function createChampionIconHtml(name, sizeClass, imgClass) {
-      const iconUrl = getChampionSquareIconUrl(name);
-      const fallbackSvg = createInitialFallbackSvg(name, sizeClass);
-      if (!iconUrl) {
-        return `<span class="inline-flex items-center justify-center shrink-0">${fallbackSvg}</span>`;
-      }
-
-      const fallbackVersion = DDRAGON_FALLBACK_VERSIONS[DDRAGON_FALLBACK_VERSIONS.length - 1];
-      const fallbackUrl = getChampionSquareIconUrl(name, fallbackVersion);
-
-      return `
-        <span class="relative inline-flex items-center justify-center ${sizeClass} rounded-xl overflow-hidden bg-deep-panel border border-deep-border shrink-0">
-          <img
-            src="${iconUrl}"
-            alt="${name}"
-            loading="lazy"
-            decoding="async"
-            class="${imgClass} object-cover"
-            onerror="if (!this.dataset.fb) { this.dataset.fb = '1'; this.src = '${fallbackUrl}'; } else { this.style.display = 'none'; this.nextElementSibling.style.display = 'flex'; }"
-          />
-          <span class="hidden w-full h-full items-center justify-center">${fallbackSvg}</span>
-        </span>
-      `;
-    }
-
-    // 초기 기본 베이스는 '티어순' (TIER), '티어순' 버튼 활성 상태
-    let selectedTier = "ALL";
-    let selectedSort = "TIER";
-
-    const searchInput = document.getElementById("searchInput");
-    const clearSearchBtn = document.getElementById("clearSearchBtn");
-    const matchupList = document.getElementById("matchupList");
-    const summaryText = document.getElementById("summaryText");
-    const ddragonPatchBadge = document.getElementById("ddragonPatchBadge");
-    const resetAllCountersBtn = document.getElementById("resetAllCountersBtn");
-    const resetAllDivider = document.getElementById("resetAllDivider");
-    const emptyState = document.getElementById("emptyState");
-    const resetFiltersBtn = document.getElementById("resetFiltersBtn");
-    const tierButtons = document.querySelectorAll(".tier-btn");
-    const sortButtons = document.querySelectorAll(".sort-btn");
-
-    const counterEditorModal = document.getElementById("counterEditorModal");
-    const closeEditorModalBtn = document.getElementById("closeEditorModalBtn");
-    const doneEditorModalBtn = document.getElementById("doneEditorModalBtn");
-    const editorTargetTierBadge = document.getElementById("editorTargetTierBadge");
-    const editorTargetIcon = document.getElementById("editorTargetIcon");
-    const editorModalTitle = document.getElementById("editorModalTitle");
-    const editorCurrentCounters = document.getElementById("editorCurrentCounters");
-    const resetRowCountersBtn = document.getElementById("resetRowCountersBtn");
-    const editorCounterInput = document.getElementById("editorCounterInput");
-    const addCounterSubmitBtn = document.getElementById("addCounterSubmitBtn");
-    const editorFeedbackMsg = document.getElementById("editorFeedbackMsg");
-    const editorQuickPickList = document.getElementById("editorQuickPickList");
-
-    let activeEditingTarget = null;
-
-    function setEditorFeedback(message, isError = false) {
-      if (!message) {
-        editorFeedbackMsg.textContent = "";
-        editorFeedbackMsg.classList.add("hidden");
-        return;
-      }
-      editorFeedbackMsg.textContent = message;
-      editorFeedbackMsg.className = isError
-        ? "mt-2 text-xs font-semibold text-rose-300"
-        : "mt-2 text-xs font-semibold text-emerald-300";
-      editorFeedbackMsg.classList.remove("hidden");
-    }
-
-    function getEditingMatchupItem() {
-      if (!activeEditingTarget) return null;
-      return getMatchupsSnapshot().find((m) => m.target === activeEditingTarget) || null;
-    }
-
-    function setRowCounters(targetName, nextCounters) {
-      const baseItem = BASE_MATCHUPS.find((m) => m.target === targetName);
-      if (!baseItem) return;
-      const deduped = [];
-      const seen = new Set();
-      nextCounters.forEach((raw) => {
-        const cleaned = (raw || "").trim();
-        if (!cleaned) return;
-        const key = cleaned.replace(/\s+/g, "").toLowerCase();
-        if (!seen.has(key)) {
-          seen.add(key);
-          deduped.push(cleaned);
-        }
-      });
-
-      const isSameAsDefault =
-        deduped.length === baseItem.defaultCounters.length &&
-        deduped.every((name, idx) => name === baseItem.defaultCounters[idx]);
-
-      if (isSameAsDefault) {
-        delete customCountersMap[targetName];
-      } else {
-        customCountersMap[targetName] = deduped;
-      }
-      saveCustomCountersToStorage();
-    }
-
+// ... existing code ...
     function renderEditorModalContent() {
       const item = getEditingMatchupItem();
       if (!item) return;
 
       editorTargetTierBadge.textContent = `${item.tier}티어`;
       editorTargetTierBadge.className = `inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-extrabold border shrink-0 ${getTierBadgeStyle(item.tier)}`;
-      editorTargetIcon.innerHTML = createChampionIconHtml(
-        item.target,
-        "w-9 h-9",
-        "w-9 h-9"
-      );
+      editorTargetIcon.innerHTML = createChampionIconHtml(item.target, "w-9 h-9", "w-9 h-9");
       editorModalTitle.textContent = `${item.target} 카운터픽 수정`;
 
+      // 현재 카운터픽 태그 렌더링 (개별 삭제 가능)
       if (item.counters.length === 0) {
-        editorCurrentCounters.innerHTML = `<span class="text-xs text-deep-muted py-1">등록된 카운터 챔피언이 없습니다. 아래에서 추가해 주세요.</span>`;
+        editorCurrentCounters.innerHTML = `<span class="text-xs text-deep-muted">등록된 카운터픽이 없습니다. 아래에서 챔피언을 추가해 주세요.</span>`;
       } else {
         editorCurrentCounters.innerHTML = item.counters
           .map((counterName) => {
-            const miniIcon = createChampionIconHtml(counterName, "w-5 h-5", "w-5 h-5");
+            const safeName = encodeURIComponent(counterName);
             return `
-              <span class="inline-flex items-center gap-1.5 bg-deep-tag border border-deep-tagBorder rounded-xl pl-2 pr-1.5 py-1 text-xs sm:text-sm font-semibold text-slate-100">
-                ${miniIcon}
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-deep-tag border border-deep-tagBorder text-xs sm:text-sm font-semibold text-slate-100">
+                ${createChampionIconHtml(counterName, "w-5 h-5", "w-5 h-5")}
                 <span>${counterName}</span>
                 <button
                   type="button"
-                  data-remove-counter="${encodeURIComponent(counterName)}"
-                  aria-label="${counterName} 카운터픽 삭제"
-                  class="ml-0.5 w-5 h-5 rounded-lg bg-deep-bg/80 hover:bg-rose-500/25 text-deep-muted hover:text-rose-200 inline-flex items-center justify-center text-xs font-bold cursor-pointer transition-colors"
+                  data-remove-counter="${safeName}"
+                  aria-label="${counterName} 삭제"
+                  class="ml-0.5 w-5 h-5 rounded-md bg-deep-bg/80 hover:bg-rose-500/25 text-deep-muted hover:text-rose-200 flex items-center justify-center text-xs font-bold cursor-pointer transition-colors"
                 >
                   ×
                 </button>
@@ -911,239 +228,273 @@
           .join("");
       }
 
-      const filterText = editorCounterInput.value.trim();
-      const existingKeys = new Set(
-        item.counters.map((c) => c.replace(/\s+/g, "").toLowerCase())
-      );
-      const candidates = getAllKnownChampions()
-        .filter((champ) => {
-          const champKey = champ.replace(/\s+/g, "").toLowerCase();
-          if (existingKeys.has(champKey)) return false;
-          if (!filterText) return true;
-          return matchesChampionQuery(champ, filterText);
-        })
-        .slice(0, 24);
+      editorCurrentCounters.querySelectorAll("[data-remove-counter]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const counterToRemove = decodeURIComponent(btn.getAttribute("data-remove-counter") || "");
+          const next = item.counters.filter((c) => c !== counterToRemove);
+          setRowCounters(item.target, next);
+          setEditorFeedback(`'${counterToRemove}' 카운터픽을 제거했습니다.`, false);
+          renderEditorModalContent();
+          renderDashboard();
+        });
+      });
 
-      if (candidates.length === 0) {
-        editorQuickPickList.innerHTML = `<span class="text-xs text-deep-muted py-1">추가 가능한 챔피언이 없거나 이미 모두 추가되었습니다.</span>`;
-      } else {
-        editorQuickPickList.innerHTML = candidates
-          .map((champ) => {
-            const miniIcon = createChampionIconHtml(champ, "w-4 h-4", "w-4 h-4");
-            return `
-              <button
-                type="button"
-                data-quick-add="${encodeURIComponent(champ)}"
-                class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-deep-row hover:bg-blue-600/25 border border-deep-border hover:border-blue-500/50 text-xs font-semibold text-slate-200 hover:text-white cursor-pointer transition-colors"
-              >
-                ${miniIcon}
-                <span>${champ}</span>
-              </button>
-            `;
-          })
-          .join("");
-      }
+      // 빠른 선택 칩 렌더링
+      const existingSet = new Set(
+        item.counters.map((c) => (CHAMPION_ALIAS_MAP[c] || c).replace(/\s+/g, "").toLowerCase())
+      );
+      const targetCompact = (CHAMPION_ALIAS_MAP[item.target] || item.target).replace(/\s+/g, "").toLowerCase();
+      const quickChampions = getAllKnownChampions().filter((champ) => {
+        const compact = champ.replace(/\s+/g, "").toLowerCase();
+        return compact !== targetCompact && !existingSet.has(compact);
+      });
+
+      editorQuickPickList.innerHTML = quickChampions
+        .slice(0, 40)
+        .map((champ) => {
+          const safeChamp = encodeURIComponent(champ);
+          return `
+            <button
+              type="button"
+              data-quick-add="${safeChamp}"
+              class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-deep-row hover:bg-deep-rowHover border border-deep-border text-xs font-medium text-slate-200 hover:text-white cursor-pointer transition-colors"
+            >
+              ${createChampionIconHtml(champ, "w-4 h-4", "w-4 h-4")}
+              <span>${champ}</span>
+            </button>
+          `;
+        })
+        .join("");
+
+      editorQuickPickList.querySelectorAll("[data-quick-add]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const champToAdd = decodeURIComponent(btn.getAttribute("data-quick-add") || "");
+          addCounterToActiveTarget(champToAdd);
+        });
+      });
     }
 
     function openCounterEditor(targetName) {
       activeEditingTarget = targetName;
       editorCounterInput.value = "";
-      setEditorFeedback("");
+      setEditorFeedback("", false);
       renderEditorModalContent();
       counterEditorModal.classList.remove("hidden");
-      editorCounterInput.focus();
+      setTimeout(() => {
+        editorCounterInput.focus();
+      }, 20);
     }
 
     function closeCounterEditor() {
       activeEditingTarget = null;
-      setEditorFeedback("");
       counterEditorModal.classList.add("hidden");
+      setEditorFeedback("", false);
     }
 
-    function addCounterToActiveRow(rawInput) {
+    function addCounterToActiveTarget(rawValue) {
       const item = getEditingMatchupItem();
       if (!item) return;
 
-      const resolvedName = normalizeCounterInputName(rawInput);
+      const resolvedName = normalizeCounterInputName(rawValue);
       if (!resolvedName) {
         setEditorFeedback("추가할 챔피언 이름을 입력하거나 선택해 주세요.", true);
         return;
       }
 
-      const nextKey = resolvedName.replace(/\s+/g, "").toLowerCase();
+      const nextCompact = (CHAMPION_ALIAS_MAP[resolvedName] || resolvedName).replace(/\s+/g, "").toLowerCase();
       const alreadyExists = item.counters.some(
-        (c) => c.replace(/\s+/g, "").toLowerCase() === nextKey
+        (c) => (CHAMPION_ALIAS_MAP[c] || c).replace(/\s+/g, "").toLowerCase() === nextCompact
       );
+
       if (alreadyExists) {
-        setEditorFeedback(`${resolvedName}은(는) 이미 카운터픽에 등록되어 있습니다.`, true);
+        setEditorFeedback(`'${resolvedName}'은(는) 이미 등록된 카운터픽입니다.`, true);
         return;
       }
 
       setRowCounters(item.target, [...item.counters, resolvedName]);
       editorCounterInput.value = "";
-      setEditorFeedback(`${resolvedName} 카운터픽이 추가되었습니다.`, false);
+      setEditorFeedback(`'${resolvedName}' 카운터픽을 추가했습니다.`, false);
       renderEditorModalContent();
-      renderMatchups();
+      renderDashboard();
     }
 
-    function removeCounterFromActiveRow(counterName) {
-      const item = getEditingMatchupItem();
-      if (!item) return;
-      const targetKey = counterName.replace(/\s+/g, "").toLowerCase();
-      const nextCounters = item.counters.filter(
-        (c) => c.replace(/\s+/g, "").toLowerCase() !== targetKey
-      );
-      setRowCounters(item.target, nextCounters);
-      setEditorFeedback(`${counterName} 카운터픽이 삭제되었습니다.`, false);
-      renderEditorModalContent();
-      renderMatchups();
+    function updateFilterButtonStyles() {
+      tierButtons.forEach((btn) => {
+        const tierVal = btn.getAttribute("data-tier");
+        const isActive = selectedTier === tierVal;
+        btn.textContent = tierVal === "ALL" ? "전체 티어" : `${tierVal}티어`;
+        btn.className = isActive
+          ? "tier-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer bg-blue-600 text-white border-blue-400 shadow-sm shadow-blue-600/30"
+          : "tier-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer bg-deep-row hover:bg-deep-rowHover text-deep-muted hover:text-white border-deep-border";
+      });
+
+      sortButtons.forEach((btn) => {
+        const sortVal = btn.getAttribute("data-sort");
+        const isActive = selectedSort === sortVal;
+        const labelMap = {
+          TIER: "티어순",
+          DEFAULT: "기본순",
+          ALPHA: "가나다순"
+        };
+        btn.textContent = labelMap[sortVal] || sortVal;
+        btn.className = isActive
+          ? "sort-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold border transition-all cursor-pointer bg-blue-600/20 text-blue-200 border-blue-500/60"
+          : "sort-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold border transition-all cursor-pointer bg-deep-row hover:bg-deep-rowHover text-deep-muted hover:text-white border-deep-border";
+      });
     }
 
-    function renderMatchups() {
-      try {
-        const query = searchInput.value.trim();
-        clearSearchBtn.classList.toggle("hidden", query.length === 0);
+    function getFilteredAndSortedMatchups() {
+      const query = searchInput.value.trim();
 
-        const anyCustomized = BASE_MATCHUPS.some((m) => hasCustomCounterOverride(m));
-        resetAllCountersBtn.classList.toggle("hidden", !anyCustomized);
-        resetAllDivider.classList.toggle("hidden", !anyCustomized);
+      // 티어순(TIER)은 1티어 -> 5티어 기본 베이스, 기본순(DEFAULT)은 원본 입력 순서, 가나다순(ALPHA)은 상대 챔피언 한글명순
+      let list =
+        selectedSort === "DEFAULT"
+          ? getMatchupsSnapshot().sort((a, b) => a.order - b.order)
+          : getTierBaseMatchups();
 
-        const tierBaseMatchups = getTierBaseMatchups();
-        let rows = tierBaseMatchups.filter((item) => {
-          const tierMatched = selectedTier === "ALL" || String(item.tier) === selectedTier;
-          const nameMatched = matchesOpponentChampion(item.target, query);
-          return tierMatched && nameMatched;
-        });
+      if (selectedTier !== "ALL") {
+        const targetTierNum = Number(selectedTier);
+        list = list.filter((item) => item.tier === targetTierNum);
+      }
 
-        if (selectedSort === "TIER") {
-          rows = [...rows].sort((a, b) => a.tier - b.tier || a.order - b.order);
-        } else if (selectedSort === "DEFAULT") {
-          rows = [...rows].sort((a, b) => a.order - b.order);
-        } else if (selectedSort === "ALPHA") {
-          rows = [...rows].sort((a, b) => a.target.localeCompare(b.target, "ko"));
-        }
+      if (query) {
+        list = list.filter((item) => matchesOpponentChampion(item.target, query));
+      }
 
-        const tierLabel = selectedTier === "ALL" ? "전체 티어" : `${selectedTier}티어`;
-        summaryText.textContent = `표시 ${rows.length}개 / 전체 ${BASE_MATCHUPS.length}개 (${tierLabel} · 정글 티어 DB 58명)`;
+      if (selectedSort === "ALPHA") {
+        list = [...list].sort((a, b) => a.target.localeCompare(b.target, "ko"));
+      }
 
+      return list;
+    }
+
+    function renderDashboard() {
+      updateFilterButtonStyles();
+
+      const query = searchInput.value.trim();
+      clearSearchBtn.classList.toggle("hidden", query.length === 0);
+
+      const customizedCount = BASE_MATCHUPS.filter((item) => hasCustomCounterOverride(item)).length;
+      resetAllCountersBtn.classList.toggle("hidden", customizedCount === 0);
+      resetAllDivider.classList.toggle("hidden", customizedCount === 0);
+
+      const rows = getFilteredAndSortedMatchups();
+      const sortLabel =
+        selectedSort === "TIER" ? "티어순" : selectedSort === "DEFAULT" ? "기본순" : "가나다순";
+      const tierLabel = selectedTier === "ALL" ? "전체 티어" : `${selectedTier}티어`;
+
+      summaryText.textContent = `표시 중 ${rows.length}개 / 전체 ${BASE_MATCHUPS.length}개 · ${tierLabel} · ${sortLabel}${
+        customizedCount > 0 ? ` · 커스텀 수정 ${customizedCount}줄` : ""
+      }`;
+
+      if (rows.length === 0) {
         matchupList.innerHTML = "";
+        emptyState.classList.remove("hidden");
+        return;
+      }
 
-        if (rows.length === 0) {
-          emptyState.classList.remove("hidden");
-          return;
-        }
-        emptyState.classList.add("hidden");
+      emptyState.classList.add("hidden");
 
-        const fragment = document.createDocumentFragment();
-
-        rows.forEach((item) => {
-          const card = document.createElement("article");
-          card.className =
-            "bg-deep-row hover:bg-deep-rowHover border border-deep-border hover:border-blue-500/40 rounded-2xl px-3.5 sm:px-5 py-3 transition-all flex flex-col md:flex-row md:items-center justify-between gap-2.5 md:gap-4";
-
-          const tierBadgeClass = getTierBadgeStyle(item.tier);
-          const leftIconHtml = createChampionIconHtml(
-            item.target,
-            "w-9 h-9 sm:w-10 sm:h-10",
-            "w-9 h-9 sm:w-10 sm:h-10"
-          );
-
-          const counterTagsHtml = item.counters
+      matchupList.innerHTML = rows
+        .map((item) => {
+          const counterChipsHtml = item.counters
             .map((counterName) => {
-              const miniIconHtml = createChampionIconHtml(
-                counterName,
-                "w-5 h-5 sm:w-6 sm:h-6",
-                "w-5 h-5 sm:w-6 sm:h-6"
-              );
               return `
-                <span class="inline-flex items-center gap-1.5 bg-deep-tag border border-deep-tagBorder rounded-xl px-2.5 py-1 text-xs sm:text-sm font-semibold text-slate-100 whitespace-nowrap shrink-0">
-                  ${miniIconHtml}
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-deep-tag border border-deep-tagBorder text-xs sm:text-sm font-semibold text-slate-100 whitespace-nowrap">
+                  ${createChampionIconHtml(counterName, "w-5 h-5 sm:w-6 sm:h-6", "w-5 h-5 sm:w-6 sm:h-6")}
                   <span>${counterName}</span>
                 </span>
               `;
             })
             .join("");
 
-          const customIndicatorHtml = item.isCustomized
-            ? `<span class="px-1.5 py-0.5 rounded-md text-[11px] font-bold bg-blue-500/15 text-blue-300 border border-blue-500/35 shrink-0">수정됨</span>`
+          const customBadgeHtml = item.isCustomized
+            ? `<span class="px-1.5 py-0.5 rounded-md text-[11px] font-bold bg-blue-500/15 text-blue-300 border border-blue-500/30">수정됨</span>`
             : "";
 
-          card.innerHTML = `
-            <div class="flex items-center gap-2.5 sm:gap-3 min-w-0 shrink-0">
-              <span class="inline-flex items-center justify-center min-w-[52px] px-2.5 py-1 rounded-lg text-xs font-extrabold border ${tierBadgeClass} shrink-0">
-                ${item.tier}티어
-              </span>
-              ${leftIconHtml}
-              <span class="text-sm sm:text-base font-bold text-white whitespace-nowrap">
-                ${item.target}
-              </span>
-              ${customIndicatorHtml}
-            </div>
-            <div class="flex items-center md:justify-end flex-wrap gap-1.5 sm:gap-2">
-              ${counterTagsHtml}
-              <button
-                type="button"
-                data-edit-target="${encodeURIComponent(item.target)}"
-                aria-label="${item.target} 카운터픽 추가 및 삭제"
-                title="${item.target} 카운터픽 수정"
-                class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-deep-panel hover:bg-blue-600 text-blue-300 hover:text-white border border-deep-border hover:border-blue-500 inline-flex items-center justify-center text-base font-extrabold cursor-pointer transition-colors shrink-0"
-              >
-                +
-              </button>
-            </div>
+          const encodedTarget = encodeURIComponent(item.target);
+
+          return `
+            <article class="grid grid-cols-1 md:grid-cols-[minmax(250px,1fr)_minmax(0,1.65fr)] items-center gap-3 md:gap-4 px-4 sm:px-5 py-3.5 rounded-2xl bg-deep-row hover:bg-deep-rowHover border border-deep-border transition-colors">
+              <!-- 왼쪽: 티어 배지 + 아이콘 + 상대 챔피언명 -->
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-extrabold border shrink-0 ${getTierBadgeStyle(item.tier)}">
+                  ${item.tier}티어
+                </span>
+                ${createChampionIconHtml(item.target, "w-9 h-9 sm:w-10 sm:h-10", "w-9 h-9 sm:w-10 sm:h-10")}
+                <span class="text-sm sm:text-base font-bold text-white truncate">${item.target}</span>
+                ${customBadgeHtml}
+              </div>
+
+              <!-- 오른쪽: 카운터픽 태그들 + 맨 오른쪽 + 수정 버튼 -->
+              <div class="flex items-center justify-between md:justify-end gap-2 pt-2 md:pt-0 border-t md:border-t-0 border-deep-border/60">
+                <div class="flex items-center justify-start md:justify-end gap-2 flex-wrap min-w-0">
+                  ${counterChipsHtml}
+                </div>
+                <button
+                  type="button"
+                  data-edit-target="${encodedTarget}"
+                  aria-label="${item.target} 카운터픽 추가 및 수정"
+                  title="${item.target} 카운터픽 추가/삭제"
+                  class="w-8 h-8 rounded-xl bg-deep-tag hover:bg-blue-600 text-slate-200 hover:text-white border border-deep-tagBorder hover:border-blue-400 flex items-center justify-center text-base font-extrabold shrink-0 cursor-pointer transition-colors"
+                >
+                  +
+                </button>
+              </div>
+            </article>
           `;
+        })
+        .join("");
 
-          fragment.appendChild(card);
+      matchupList.querySelectorAll("[data-edit-target]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const targetName = decodeURIComponent(btn.getAttribute("data-edit-target") || "");
+          if (targetName) {
+            openCounterEditor(targetName);
+          }
         });
-
-        matchupList.appendChild(fragment);
-      } catch (err) {
-        matchupList.innerHTML = `<div class="bg-rose-950/40 border border-rose-500/40 text-rose-200 rounded-xl p-4 text-sm">목록 렌더링 중 오류가 발생했습니다: ${err.message}</div>`;
-      }
+      });
     }
 
-    async function resolveLatestDDragonVersion() {
+    async function resolveLatestDDragonPatch() {
       try {
         const res = await fetch("https://ddragon.leagueoflegends.com/api/versions.json", {
           cache: "no-store"
         });
-        if (!res.ok) throw new Error("versions.json 응답 실패");
+        if (!res.ok) throw new Error("Failed to fetch DDragon versions");
         const versions = await res.json();
         if (Array.isArray(versions) && versions.length > 0 && typeof versions[0] === "string") {
           activeDDragonVersion = versions[0];
-          ddragonPatchBadge.textContent = `DDragon 패치 ${activeDDragonVersion}`;
-          renderMatchups();
+          ddragonPatchBadge.textContent = `DDragon ${activeDDragonVersion}`;
+          renderDashboard();
           return;
         }
-        throw new Error("버전 목록 형식 오류");
+        throw new Error("Empty DDragon version list");
       } catch (_err) {
-        activeDDragonVersion = DDRAGON_FALLBACK_VERSIONS[0];
-        ddragonPatchBadge.textContent = `DDragon 패치 ${activeDDragonVersion} (폴백)`;
-        renderMatchups();
+        ddragonPatchBadge.textContent = `DDragon ${activeDDragonVersion} (폴백)`;
       }
     }
 
-    searchInput.addEventListener("input", renderMatchups);
+    // 이벤트 리스너 등록
+    searchInput.addEventListener("input", renderDashboard);
 
     clearSearchBtn.addEventListener("click", () => {
       searchInput.value = "";
-      renderMatchups();
+      renderDashboard();
       searchInput.focus();
     });
 
     tierButtons.forEach((btn) => {
       btn.addEventListener("click", () => {
-        selectedTier = btn.dataset.tier;
-        syncButtonStates();
-        renderMatchups();
+        selectedTier = btn.getAttribute("data-tier") || "ALL";
+        renderDashboard();
       });
     });
 
     sortButtons.forEach((btn) => {
       btn.addEventListener("click", () => {
-        selectedSort = btn.dataset.sort;
-        syncButtonStates();
-        renderMatchups();
+        selectedSort = btn.getAttribute("data-sort") || "TIER";
+        renderDashboard();
       });
     });
 
@@ -1151,75 +502,15 @@
       searchInput.value = "";
       selectedTier = "ALL";
       selectedSort = "TIER";
-      syncButtonStates();
-      renderMatchups();
+      renderDashboard();
     });
 
     resetAllCountersBtn.addEventListener("click", () => {
       customCountersMap = {};
       saveCustomCountersToStorage();
+      renderDashboard();
       if (activeEditingTarget) {
-        setEditorFeedback("전체 카운터픽이 기본값으로 초기화되었습니다.", false);
         renderEditorModalContent();
-      }
-      renderMatchups();
-    });
-
-    matchupList.addEventListener("click", (event) => {
-      const editBtn = event.target.closest("[data-edit-target]");
-      if (!editBtn) return;
-      const decodedTarget = decodeURIComponent(editBtn.getAttribute("data-edit-target") || "");
-      if (decodedTarget) {
-        openCounterEditor(decodedTarget);
-      }
-    });
-
-    closeEditorModalBtn.addEventListener("click", closeCounterEditor);
-    doneEditorModalBtn.addEventListener("click", closeCounterEditor);
-
-    counterEditorModal.addEventListener("click", (event) => {
-      if (event.target === counterEditorModal) {
-        closeCounterEditor();
-      }
-    });
-
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && !counterEditorModal.classList.contains("hidden")) {
-        closeCounterEditor();
-      }
-    });
-
-    addCounterSubmitBtn.addEventListener("click", () => {
-      addCounterToActiveRow(editorCounterInput.value);
-    });
-
-    editorCounterInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        addCounterToActiveRow(editorCounterInput.value);
-      }
-    });
-
-    editorCounterInput.addEventListener("input", () => {
-      setEditorFeedback("");
-      renderEditorModalContent();
-    });
-
-    editorCurrentCounters.addEventListener("click", (event) => {
-      const removeBtn = event.target.closest("[data-remove-counter]");
-      if (!removeBtn) return;
-      const decodedName = decodeURIComponent(removeBtn.getAttribute("data-remove-counter") || "");
-      if (decodedName) {
-        removeCounterFromActiveRow(decodedName);
-      }
-    });
-
-    editorQuickPickList.addEventListener("click", (event) => {
-      const quickBtn = event.target.closest("[data-quick-add]");
-      if (!quickBtn) return;
-      const decodedChamp = decodeURIComponent(quickBtn.getAttribute("data-quick-add") || "");
-      if (decodedChamp) {
-        addCounterToActiveRow(decodedChamp);
       }
     });
 
@@ -1228,14 +519,40 @@
       if (!item) return;
       delete customCountersMap[item.target];
       saveCustomCountersToStorage();
-      setEditorFeedback(`${item.target}의 카운터픽을 기본값으로 복원했습니다.`, false);
+      setEditorFeedback(`'${item.target}'의 카운터픽을 기본값으로 복원했습니다.`, false);
       renderEditorModalContent();
-      renderMatchups();
+      renderDashboard();
     });
 
-    syncButtonStates();
-    renderMatchups();
-    resolveLatestDDragonVersion();
+    addCounterSubmitBtn.addEventListener("click", () => {
+      addCounterToActiveTarget(editorCounterInput.value);
+    });
+
+    editorCounterInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addCounterToActiveTarget(editorCounterInput.value);
+      }
+    });
+
+    closeEditorModalBtn.addEventListener("click", closeCounterEditor);
+    doneEditorModalBtn.addEventListener("click", closeCounterEditor);
+
+    counterEditorModal.addEventListener("click", (e) => {
+      if (e.target === counterEditorModal) {
+        closeCounterEditor();
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !counterEditorModal.classList.contains("hidden")) {
+        closeCounterEditor();
+      }
+    });
+
+    // 초기 렌더링 및 최신 Data Dragon 패치 조회
+    renderDashboard();
+    resolveLatestDDragonPatch();
   </script>
 </body>
 </html>
