@@ -4,14 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>정글 카운터픽 대시보드</title>
-  <!-- Tailwind CSS CDN 로드 -->
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Inter 구글 웹폰트 로드 -->
+  <!-- Google Font: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script>
-    // DeepLoL 다크 테마 색상 및 폰트 설정
+    // 다크 테마 컬러 팔레트 및 폰트 설정
     tailwind.config = {
       darkMode: "class",
       theme: {
@@ -38,7 +38,7 @@
     };
   </script>
   <style>
-    /* 기본 다크 배경 및 가로 스크롤 방지 스타일 */
+    /* 기본 다크 테마 및 가로 스크롤 방지 */
     body {
       background-color: #090c14;
       color: #f1f5f9;
@@ -49,7 +49,7 @@
 </head>
 <body class="min-h-screen bg-deep-bg text-deep-text antialiased selection:bg-blue-500/30 selection:text-white">
   <div class="w-full max-w-6xl mx-auto px-3 sm:px-6 py-5 sm:py-8">
-    <!-- 상단 헤더 & 필터/정렬 컨트롤 -->
+    <!-- 상단 헤더 & 필터/정렬 영역 -->
     <header class="bg-deep-panel border border-deep-border rounded-2xl p-4 sm:p-6 mb-4 shadow-xl">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div class="flex items-center gap-2.5 flex-wrap">
@@ -61,7 +61,7 @@
           </span>
         </div>
 
-        <!-- PS 챔피언 통계 외부 링크 -->
+        <!-- 외부 통계 링크 -->
         <a
           href="https://lol.ps/statistics"
           target="_blank"
@@ -73,14 +73,14 @@
         </a>
       </div>
 
-      <!-- 왼쪽 상대 챔피언 검색창 -->
+      <!-- 상대 챔피언 검색 입력창(한글 / 초성 / 영타 지원) -->
       <div class="relative mb-4">
         <input
           type="text"
           id="searchInput"
           autocomplete="off"
           placeholder="왼쪽 상대 챔피언 이름, 초성 또는 영타 검색 (예: ㄴㅍㄹ, wdf, 리신, 자이라)"
-          class="w-full bg-deep-bg border border-deep-border focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl pl-4 pr-11 py-3 text-sm sm:text-base text-white placeholder-deep-muted outline-none transition-all"
+          class="w-full bg-deep-bg border border-deep-border focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl pl-4 pr-14 py-3 text-sm sm:text-base text-white placeholder-deep-muted outline-none transition-all"
         />
         <button
           type="button"
@@ -92,7 +92,7 @@
         </button>
       </div>
 
-      <!-- 티어 필터 & 정렬 버튼 -->
+      <!-- 티어 필터 & 정렬 버튼 그룹 -->
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         <div class="flex items-center gap-1.5 flex-wrap" id="tierGroup" role="group" aria-label="티어 필터">
           <button type="button" data-tier="ALL" class="tier-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer"></button>
@@ -111,7 +111,7 @@
       </div>
     </header>
 
-    <!-- 상태 요약 바 -->
+    <!-- 요약 및 DDragon 패치 상태 바 -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1 mb-3 text-xs sm:text-sm text-deep-muted">
       <div id="summaryText" class="font-medium">불러오는 중...</div>
       <div class="flex items-center gap-2 flex-wrap">
@@ -121,16 +121,16 @@
       </div>
     </div>
 
-    <!-- 데스크톱 1줄 컬럼 헤더 -->
+    <!-- 데스크톱 컬럼 헤더 -->
     <div class="hidden md:grid grid-cols-[minmax(250px,1fr)_minmax(0,1.65fr)] items-center px-5 py-2.5 mb-2 rounded-xl bg-deep-panel/80 border border-deep-border/70 text-xs font-bold text-deep-muted tracking-wider">
       <span>티어 · 상대 챔피언 (ENEMY JUNGLE)</span>
       <span class="text-right">추천 카운터픽 (COUNTER PICKS)</span>
     </div>
 
-    <!-- 1줄 가로 카드 리스트 -->
+    <!-- 매치업 행 목록 -->
     <main id="matchupList" class="flex flex-col gap-2.5"></main>
 
-    <!-- 빈 결과 안내 -->
+    <!-- 검색/필터 결과 없음 안내 -->
     <div id="emptyState" class="hidden bg-deep-panel border border-deep-border rounded-2xl py-14 px-6 text-center mt-4">
       <p class="text-deep-text font-semibold text-base mb-1">조건에 맞는 상대 챔피언이 없습니다.</p>
       <p class="text-deep-muted text-sm mb-4">검색어 또는 선택된 티어 필터를 초기화해 보세요.</p>
@@ -142,38 +142,17 @@
         전체 초기화
       </button>
     </div>
-
-    <!-- 인라인 상태 알림 배너 -->
-    <div
-      id="statusBanner"
-      role="status"
-      aria-live="polite"
-      class="hidden mt-4 px-4 py-3 rounded-xl bg-deep-panel border border-blue-500/40 text-xs sm:text-sm text-blue-200 flex items-center justify-between gap-3"
-    >
-      <span id="statusBannerText"></span>
-      <button
-        type="button"
-        id="closeStatusBannerBtn"
-        class="text-xs font-semibold text-deep-muted hover:text-white px-2 py-0.5 rounded-lg hover:bg-deep-row cursor-pointer"
-      >
-        닫기
-      </button>
-    </div>
   </div>
 
   <script>
+    // 로컬 스토리지 영구 저장 키
     const STORAGE_KEY = "jungle_counterpick_custom_v1";
 
-    /**
-     * 1티어 ~ 5티어 전체 정글 챔피언 티어 맵
-     */
+    // 정글 챔피언 티어 맵 (1~5티어)
     const JUNGLE_TIER_MAP = {
-      // 1티어
       "리 신": 1,
       "니달리": 1,
       "자이라": 1,
-
-      // 2티어
       "나피리": 2,
       "탈리야": 2,
       "오공": 2,
@@ -190,8 +169,6 @@
       "자헨": 2,
       "에코": 2,
       "킨드레드": 2,
-
-      // 3티어
       "람머스": 3,
       "초가스": 3,
       "브라이어": 3,
@@ -206,8 +183,6 @@
       "카직스": 3,
       "그라가스": 3,
       "누누와 윌럼프": 3,
-
-      // 4티어
       "그레이브즈": 4,
       "아이번": 4,
       "뽀삐": 4,
@@ -227,8 +202,6 @@
       "로크": 4,
       "트런들": 4,
       "쉬바나": 4,
-
-      // 5티어
       "퀸": 5,
       "그웬": 5,
       "마오카이": 5,
@@ -237,9 +210,7 @@
       "아무무": 5
     };
 
-    /**
-     * 챔피언 표기 변형/별칭 정규화 맵
-     */
+    // 챔피언 별칭 및 띄어쓰기 정규화 맵
     const CHAMPION_ALIAS_MAP = {
       "다이에나": "다이애나",
       "다이애나": "다이애나",
@@ -267,9 +238,7 @@
       "브랜드": "브랜드"
     };
 
-    /**
-     * 라이엇 Data Dragon 공식 챔피언 ID 매핑
-     */
+    // Data Dragon 챔피언 영문 ID 맵
     const CHAMPION_DDRAGON_ID_MAP = {
       "리 신": "LeeSin",
       "리신": "LeeSin",
@@ -344,23 +313,28 @@
       "브랜드": "Brand"
     };
 
-    // DDragon 버전 목록 및 기본 활성 버전
+    // DDragon 폴백 버전 및 활성 패치 상태
     const DDRAGON_FALLBACK_VERSIONS = ["16.1.1", "15.1.1", "14.24.1"];
     let activeDDragonVersion = DDRAGON_FALLBACK_VERSIONS[0];
 
     /**
      * 챔피언 사각형 아이콘 URL 생성
+     * @param {string} name 챔피언 이름
+     * @param {string} version Data Dragon 패치 버전
+     * @returns {string}
      */
     function getChampionSquareIconUrl(name, version = activeDDragonVersion) {
-      const canonical = CHAMPION_ALIAS_MAP[name] || name;
-      const ddragonId = CHAMPION_DDRAGON_ID_MAP[name] || CHAMPION_DDRAGON_ID_MAP[canonical];
-      if (!ddragonId) return "";
-      return `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${ddragonId}.png`;
+      try {
+        const canonical = CHAMPION_ALIAS_MAP[name] || name;
+        const ddragonId = CHAMPION_DDRAGON_ID_MAP[name] || CHAMPION_DDRAGON_ID_MAP[canonical];
+        if (!ddragonId) return "";
+        return `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${ddragonId}.png`;
+      } catch (_err) {
+        return "";
+      }
     }
 
-    /**
-     * 정글 카운터픽 데이터 (우측 카운터픽 태그에는 티어를 붙이지 않음)
-     */
+    // 기본 카운터픽 매치업 목록
     const RAW_COUNTER_MATCHUPS = [
       { target: "다이에나", counters: ["녹턴"] },
       { target: "나피리", counters: ["녹턴"] },
@@ -416,7 +390,9 @@
     ];
 
     /**
-     * 정규화된 챔피언명으로 티어 조회
+     * 챔피언 티어 계산 (기본 5티어)
+     * @param {string} name
+     * @returns {number}
      */
     function resolveTier(name) {
       const canonical = CHAMPION_ALIAS_MAP[name] || name;
@@ -424,58 +400,62 @@
     }
 
     /**
-     * 로컬 스토리지에서 사용자 추가 카운터픽 맵 로드
+     * localStorage에서 저장된 카운터픽 맵 로드
+     * @returns {Record<string, string[]> | null}
      */
-    function loadCustomCounterpicks() {
+    function loadSavedCounters() {
       try {
         const raw = window.localStorage.getItem(STORAGE_KEY);
-        if (!raw) return {};
+        if (!raw) return null;
         const parsed = JSON.parse(raw);
-        if (!parsed || typeof parsed !== "object") return {};
-        const sanitized = {};
-        Object.keys(parsed).forEach((key) => {
-          if (Array.isArray(parsed[key])) {
-            sanitized[key] = parsed[key]
-              .map((v) => (typeof v === "string" ? v.trim() : ""))
-              .filter(Boolean);
-          }
-        });
-        return sanitized;
+        if (parsed && typeof parsed === "object") {
+          return parsed;
+        }
       } catch (_err) {
-        return {};
+        // 스토리지 접근 실패 시 null 반환
       }
+      return null;
     }
 
     /**
-     * 로컬 스토리지에 사용자 추가 카운터픽 맵 저장
+     * 현재 MATCHUPS 상태를 localStorage에 영구 저장
      */
-    function saveCustomCounterpicks(customMap) {
+    function saveAllCounters() {
       try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(customMap));
+        const mapObj = {};
+        MATCHUPS.forEach((item) => {
+          mapObj[item.target] = [...item.counters];
+        });
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(mapObj));
       } catch (_err) {
-        // 스토리지 제한 또는 비활성 환경에서도 앱 동작 유지
+        // 스토리지 저장 제한 무시
       }
     }
 
-    const customCounterMap = loadCustomCounterpicks();
+    // 초기 데이터 로드 및 메모리 배열 구성
+    const savedMap = loadSavedCounters();
 
-    // 기본 데이터와 로컬 스토리지 저장값을 결합한 대시보드 매치업 상태 배열
     const MATCHUPS = RAW_COUNTER_MATCHUPS.map((entry, idx) => {
-      const savedExtra = Array.isArray(customCounterMap[entry.target]) ? customCounterMap[entry.target] : [];
-      const merged = [...entry.counters];
-      savedExtra.forEach((c) => {
-        if (!merged.includes(c)) merged.push(c);
-      });
+      const counters = savedMap && Array.isArray(savedMap[entry.target])
+        ? [...savedMap[entry.target]]
+        : [...entry.counters];
       return {
         order: idx,
         target: entry.target,
         tier: resolveTier(entry.target),
-        counters: merged
+        counters
       };
     });
 
+    if (!savedMap) {
+      saveAllCounters();
+    }
+
+    // 현재 '+' 입력란이 열린 상대 챔피언 이름
+    let activeAddTarget = null;
+
     /**
-     * 티어순(1티어 -> 5티어) 정렬 베이스 반환
+     * 티어순 정렬 기준 배열 반환
      */
     function getTierBaseMatchups() {
       return [...MATCHUPS].sort(
@@ -483,7 +463,7 @@
       );
     }
 
-    // 한글 초성 및 두벌식 자판 조합 테이블
+    // 한글 자모 및 QWERTY 두벌식 조합 테이블
     const CHOSUNG_TABLE = [
       "ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ",
       "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"
@@ -570,7 +550,8 @@
     }
 
     /**
-     * 영문 QWERTY 두벌식 입력을 자모열 및 완성형 한글로 변환
+     * QWERTY 영타 입력을 자모열 및 조합형 한글로 변환
+     * @param {string} rawText
      */
     function composeKoreanFromQwerty(rawText) {
       const lower = (rawText || "").toLowerCase();
@@ -672,7 +653,8 @@
     }
 
     /**
-     * 한글 문자열에서 초성 추출
+     * 완성형 한글에서 초성 추출
+     * @param {string} text
      */
     function extractChosung(text) {
       let out = "";
@@ -692,7 +674,9 @@
     }
 
     /**
-     * 왼쪽 상대 챔피언 이름, 한글 초성 및 두벌식 영타 검색 매칭
+     * 상대 챔피언 이름과 검색어(한글/초성/영타) 일치 여부 판별
+     * @param {string} targetName
+     * @param {string} rawQuery
      */
     function matchesOpponentChampion(targetName, rawQuery) {
       const compactQuery = rawQuery.replace(/\s+/g, "").toLowerCase();
@@ -720,7 +704,8 @@
     }
 
     /**
-     * 티어 배지 색상 스타일 반환
+     * 티어 배지 Tailwind 클래스 반환
+     * @param {number} tier
      */
     function getTierBadgeStyle(tier) {
       switch (tier) {
@@ -738,7 +723,8 @@
     }
 
     /**
-     * 이니셜 SVG 폴백용 색상 팔레트 생성
+     * 이니셜 SVG 폴백용 그라데이션 팔레트 선택
+     * @param {string} name
      */
     function getAvatarPalette(name) {
       let hash = 0;
@@ -756,7 +742,9 @@
     }
 
     /**
-     * 챔피언 아이콘 로드 실패 시 사용할 SVG 이니셜 아바타 생성
+     * 아이콘 로드 실패 시 렌더링할 SVG 이니셜 아바타 생성
+     * @param {string} label
+     * @param {string} sizeClass
      */
     function createInitialFallbackSvg(label, sizeClass) {
       const char = (label || "?").trim().charAt(0);
@@ -777,7 +765,10 @@
     }
 
     /**
-     * 챔피언 사각형 아이콘 HTML 생성 (폴백 버전 및 SVG 이니셜 아바타 포함)
+     * DDragon 사각형 아이콘 및 폴백 체인 HTML 생성
+     * @param {string} name
+     * @param {string} sizeClass
+     * @param {string} imgClass
      */
     function createChampionIconHtml(name, sizeClass, imgClass) {
       const iconUrl = getChampionSquareIconUrl(name);
@@ -804,11 +795,41 @@
       `;
     }
 
-    // 필터/정렬 및 카운터픽 추가 상태
+    /**
+     * '+' 입력란에서 새 카운터픽 추가 및 localStorage 저장
+     * @param {string} targetName
+     * @param {string} rawCounterName
+     */
+    function addCounterToTarget(targetName, rawCounterName) {
+      const trimmed = (rawCounterName || "").trim();
+      if (!trimmed) return false;
+      const row = MATCHUPS.find((m) => m.target === targetName);
+      if (!row) return false;
+      if (!row.counters.includes(trimmed)) {
+        row.counters.push(trimmed);
+        saveAllCounters();
+      }
+      return true;
+    }
+
+    /**
+     * 원본3 기준: '+' 버튼이 활성화된 행의 카운터픽 칩 옆 'X' 버튼 클릭 시
+     * 메모리(MATCHUPS 배열)에서만 해당 카운터픽 1개를 제거하고 화면을 다시 그리며,
+     * localStorage(jungle_counterpick_custom_v1)에는 반영하지 않아 새로고침 시 저장된 데이터가 유지됨.
+     * @param {string} targetName
+     * @param {number} counterIndex
+     */
+    function tempRemoveCounterFromMemory(targetName, counterIndex) {
+      const row = MATCHUPS.find((m) => m.target === targetName);
+      if (!row) return;
+      if (counterIndex >= 0 && counterIndex < row.counters.length) {
+        row.counters.splice(counterIndex, 1);
+        renderDashboard();
+      }
+    }
+
     let selectedTier = "ALL";
     let selectedSort = "TIER";
-    let activeAddOrder = null;
-    let draftCounterName = "";
 
     const searchInput = document.getElementById("searchInput");
     const clearSearchBtn = document.getElementById("clearSearchBtn");
@@ -817,23 +838,11 @@
     const ddragonPatchBadge = document.getElementById("ddragonPatchBadge");
     const emptyState = document.getElementById("emptyState");
     const resetFiltersBtn = document.getElementById("resetFiltersBtn");
-    const statusBanner = document.getElementById("statusBanner");
-    const statusBannerText = document.getElementById("statusBannerText");
-    const closeStatusBannerBtn = document.getElementById("closeStatusBannerBtn");
     const tierButtons = document.querySelectorAll(".tier-btn");
     const sortButtons = document.querySelectorAll(".sort-btn");
 
-    function showStatusMessage(msg) {
-      statusBannerText.textContent = msg;
-      statusBanner.classList.remove("hidden");
-    }
-
-    function hideStatusMessage() {
-      statusBanner.classList.add("hidden");
-    }
-
     /**
-     * 티어 필터 및 정렬 버튼 스타일 갱신
+     * 티어 필터 및 정렬 버튼 활성 상태 갱신
      */
     function updateFilterButtonStyles() {
       tierButtons.forEach((btn) => {
@@ -861,7 +870,7 @@
     }
 
     /**
-     * 현재 검색어, 티어 필터, 정렬 기준을 반영한 매치업 목록 반환
+     * 필터 및 정렬 조건이 적용된 매치업 목록 반환
      */
     function getFilteredAndSortedMatchups() {
       const query = searchInput.value.trim();
@@ -888,42 +897,18 @@
     }
 
     /**
-     * 특정 상대 챔피언 행에 새 카운터픽 챔피언 추가 및 localStorage 저장
+     * HTML 속성 이스케이프
+     * @param {unknown} str
      */
-    function appendCounterpickToTarget(targetOrder, rawCounterName) {
-      const cleaned = (rawCounterName || "").trim();
-      if (!cleaned) {
-        showStatusMessage("추가할 카운터픽 챔피언 이름을 입력해 주세요.");
-        return;
-      }
-
-      const targetItem = MATCHUPS.find((item) => item.order === targetOrder);
-      if (!targetItem) return;
-
-      const lastCounter = targetItem.counters[targetItem.counters.length - 1];
-      if (targetItem.counters.includes(cleaned) || lastCounter === cleaned) {
-        showStatusMessage(`${targetItem.target}의 카운터픽에 '${cleaned}'이(가) 이미 등록되어 있습니다.`);
-        return;
-      }
-
-      targetItem.counters.push(cleaned);
-
-      if (!Array.isArray(customCounterMap[targetItem.target])) {
-        customCounterMap[targetItem.target] = [];
-      }
-      if (!customCounterMap[targetItem.target].includes(cleaned)) {
-        customCounterMap[targetItem.target].push(cleaned);
-      }
-      saveCustomCounterpicks(customCounterMap);
-
-      activeAddOrder = null;
-      draftCounterName = "";
-      renderDashboard();
-      showStatusMessage(`${targetItem.target} 카운터픽에 '${cleaned}'을(를) 저장했습니다. (${targetItem.counters.join(", ")})`);
+    function escapeAttr(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;");
     }
 
     /**
-     * 대시보드 전체 렌더링
+     * 대시보드 행 렌더링
      */
     function renderDashboard() {
       updateFilterButtonStyles();
@@ -948,59 +933,66 @@
 
       matchupList.innerHTML = rows
         .map((item) => {
+          const isAddingHere = activeAddTarget === item.target;
+
+          // '+' 버튼이 활성화된 행에서만 카운터픽 칩 옆에 'X' 버튼 표시
           const counterChipsHtml = item.counters
-            .map((counterName) => {
+            .map((counterName, idx) => {
+              const removeBtnHtml = isAddingHere
+                ? `<button
+                    type="button"
+                    data-temp-remove-target="${escapeAttr(item.target)}"
+                    data-temp-remove-index="${idx}"
+                    title="${escapeAttr(counterName)} 임시 제거"
+                    aria-label="${escapeAttr(counterName)} 임시 제거"
+                    class="ml-0.5 inline-flex items-center justify-center w-4 h-4 rounded text-xs font-extrabold text-rose-300 hover:text-white hover:bg-rose-500/40 cursor-pointer transition-colors"
+                  >X</button>`
+                : "";
+
               return `
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-deep-tag border border-deep-tagBorder text-xs sm:text-sm font-semibold text-slate-100 whitespace-nowrap">
                   ${createChampionIconHtml(counterName, "w-5 h-5 sm:w-6 sm:h-6", "w-5 h-5 sm:w-6 sm:h-6")}
                   <span>${counterName}</span>
+                  ${removeBtnHtml}
                 </span>
               `;
             })
             .join("");
 
-          const isRowAdding = activeAddOrder === item.order;
-          const rowActionHtml = isRowAdding
+          const addBoxHtml = isAddingHere
             ? `
-              <div class="inline-flex items-center gap-1.5 flex-wrap" data-row-add="${item.order}">
+              <div class="inline-flex items-center gap-1.5 bg-deep-bg border border-blue-500/60 rounded-xl px-2 py-1" data-add-box="${escapeAttr(item.target)}">
                 <input
                   type="text"
-                  class="row-counter-input w-32 sm:w-40 bg-deep-bg border border-blue-500/70 focus:border-blue-400 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm text-white placeholder-deep-muted outline-none"
-                  data-order="${item.order}"
-                  value="${draftCounterName.replace(/"/g, "&quot;")}"
-                  placeholder="카운터픽 입력"
-                  aria-label="${item.target} 새 카운터픽 챔피언 이름"
+                  data-add-input="${escapeAttr(item.target)}"
+                  placeholder="카운터 챔프 입력"
+                  autocomplete="off"
+                  class="w-28 sm:w-32 bg-transparent text-xs sm:text-sm text-white placeholder-deep-muted outline-none px-1 py-0.5"
                 />
                 <button
                   type="button"
-                  class="confirm-counter-btn px-2.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-500 text-white border border-blue-400/50 transition-colors cursor-pointer whitespace-nowrap"
-                  data-order="${item.order}"
-                >
-                  추가
-                </button>
+                  data-confirm-add="${escapeAttr(item.target)}"
+                  class="px-2 py-1 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white cursor-pointer transition-colors"
+                >확인</button>
                 <button
                   type="button"
-                  class="cancel-counter-btn px-2 py-1.5 rounded-xl text-xs sm:text-sm font-semibold bg-deep-panel hover:bg-deep-rowHover text-deep-muted hover:text-white border border-deep-border transition-colors cursor-pointer whitespace-nowrap"
-                >
-                  취소
-                </button>
+                  data-cancel-add="${escapeAttr(item.target)}"
+                  class="px-1.5 py-1 rounded-lg text-xs font-bold text-deep-muted hover:text-white cursor-pointer transition-colors"
+                >취소</button>
               </div>
             `
             : `
               <button
                 type="button"
-                class="open-counter-add-btn inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-deep-tag hover:bg-blue-600/25 text-blue-300 hover:text-white border border-deep-tagBorder hover:border-blue-500/60 text-base font-extrabold transition-colors cursor-pointer shrink-0"
-                data-order="${item.order}"
-                title="${item.target} 카운터픽 추가"
-                aria-label="${item.target} 카운터픽 추가"
-              >
-                +
-              </button>
+                data-open-add="${escapeAttr(item.target)}"
+                title="${escapeAttr(item.target)} 카운터픽 추가"
+                aria-label="${escapeAttr(item.target)} 카운터픽 추가"
+                class="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-deep-tag hover:bg-blue-600/30 text-blue-300 hover:text-white border border-deep-tagBorder hover:border-blue-500/60 text-base font-extrabold transition-colors cursor-pointer shrink-0"
+              >+</button>
             `;
 
           return `
             <article class="grid grid-cols-1 md:grid-cols-[minmax(250px,1fr)_minmax(0,1.65fr)] items-center gap-3 md:gap-4 px-4 sm:px-5 py-3.5 rounded-2xl bg-deep-row hover:bg-deep-rowHover border border-deep-border transition-colors">
-              <!-- 왼쪽: 티어 배지 + 아이콘 + 상대 챔피언명 -->
               <div class="flex items-center gap-3 min-w-0">
                 <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-extrabold border shrink-0 ${getTierBadgeStyle(item.tier)}">
                   ${item.tier}티어
@@ -1009,64 +1001,77 @@
                 <span class="text-sm sm:text-base font-bold text-white truncate">${item.target}</span>
               </div>
 
-              <!-- 오른쪽: 카운터픽 태그들 (티어 배지 없음) + 행 맨 오른쪽 '+' 버튼 -->
               <div class="flex items-center justify-start md:justify-end gap-2 flex-wrap pt-2 md:pt-0 border-t md:border-t-0 border-deep-border/60">
                 ${counterChipsHtml}
-                ${rowActionHtml}
+                ${addBoxHtml}
               </div>
             </article>
           `;
         })
         .join("");
 
-      // 행별 '+' 버튼 및 입력 이벤트 바인딩
-      document.querySelectorAll(".open-counter-add-btn").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const orderNum = Number(btn.getAttribute("data-order"));
-          activeAddOrder = orderNum;
-          draftCounterName = "";
-          renderDashboard();
-          const activeInput = matchupList.querySelector(`.row-counter-input[data-order="${orderNum}"]`);
-          if (activeInput) activeInput.focus();
-        });
-      });
-
-      document.querySelectorAll(".row-counter-input").forEach((inputEl) => {
-        inputEl.addEventListener("input", (e) => {
-          draftCounterName = e.target.value;
-        });
-        inputEl.addEventListener("keydown", (e) => {
-          const orderNum = Number(inputEl.getAttribute("data-order"));
-          if (e.key === "Enter") {
-            e.preventDefault();
-            appendCounterpickToTarget(orderNum, inputEl.value);
-          } else if (e.key === "Escape") {
-            activeAddOrder = null;
-            draftCounterName = "";
-            renderDashboard();
-          }
-        });
-      });
-
-      document.querySelectorAll(".confirm-counter-btn").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const orderNum = Number(btn.getAttribute("data-order"));
-          const inputEl = matchupList.querySelector(`.row-counter-input[data-order="${orderNum}"]`);
-          appendCounterpickToTarget(orderNum, inputEl ? inputEl.value : draftCounterName);
-        });
-      });
-
-      document.querySelectorAll(".cancel-counter-btn").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          activeAddOrder = null;
-          draftCounterName = "";
-          renderDashboard();
-        });
-      });
+      if (activeAddTarget) {
+        const inputEl = matchupList.querySelector(`[data-add-input="${CSS.escape(activeAddTarget)}"]`);
+        if (inputEl) {
+          inputEl.focus();
+        }
+      }
     }
 
+    // 리스트 클릭 이벤트 위임 ('X' 임시 제거, '+' 열기, 확인, 취소)
+    matchupList.addEventListener("click", (e) => {
+      const tempRemoveBtn = e.target.closest("[data-temp-remove-target][data-temp-remove-index]");
+      if (tempRemoveBtn) {
+        const target = tempRemoveBtn.getAttribute("data-temp-remove-target");
+        const idx = Number(tempRemoveBtn.getAttribute("data-temp-remove-index"));
+        tempRemoveCounterFromMemory(target, idx);
+        return;
+      }
+
+      const openBtn = e.target.closest("[data-open-add]");
+      if (openBtn) {
+        activeAddTarget = openBtn.getAttribute("data-open-add");
+        renderDashboard();
+        return;
+      }
+
+      const confirmBtn = e.target.closest("[data-confirm-add]");
+      if (confirmBtn) {
+        const target = confirmBtn.getAttribute("data-confirm-add");
+        const inputEl = matchupList.querySelector(`[data-add-input="${CSS.escape(target)}"]`);
+        if (inputEl && addCounterToTarget(target, inputEl.value)) {
+          activeAddTarget = null;
+          renderDashboard();
+        }
+        return;
+      }
+
+      const cancelBtn = e.target.closest("[data-cancel-add]");
+      if (cancelBtn) {
+        activeAddTarget = null;
+        renderDashboard();
+      }
+    });
+
+    // 카운터픽 입력란 Enter / Escape 키 처리
+    matchupList.addEventListener("keydown", (e) => {
+      const inputEl = e.target.closest("[data-add-input]");
+      if (!inputEl) return;
+      const target = inputEl.getAttribute("data-add-input");
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (addCounterToTarget(target, inputEl.value)) {
+          activeAddTarget = null;
+          renderDashboard();
+        }
+      } else if (e.key === "Escape") {
+        activeAddTarget = null;
+        renderDashboard();
+      }
+    });
+
     /**
-     * 최신 Data Dragon 패치 버전 조회 (실패 시 폴백 버전 사용)
+     * Data Dragon 최신 패치 버전 조회 및 폴백 처리
      */
     async function resolveLatestDDragonPatch() {
       try {
@@ -1087,7 +1092,6 @@
       }
     }
 
-    // 검색, 초기화, 티어 필터, 정렬 이벤트 리스너
     searchInput.addEventListener("input", renderDashboard);
 
     clearSearchBtn.addEventListener("click", () => {
@@ -1114,15 +1118,10 @@
       searchInput.value = "";
       selectedTier = "ALL";
       selectedSort = "TIER";
-      activeAddOrder = null;
-      draftCounterName = "";
-      hideStatusMessage();
+      activeAddTarget = null;
       renderDashboard();
     });
 
-    closeStatusBannerBtn.addEventListener("click", hideStatusMessage);
-
-    // 초기 렌더링 및 최신 Data Dragon 패치 조회 실행
     renderDashboard();
     resolveLatestDDragonPatch();
   </script>
