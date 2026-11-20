@@ -1,218 +1,716 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>모던 웹 계산기</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>정글 카운터픽 대시보드 (DeepLoL 스타일)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Inter", "Pretendard", "-apple-system", "BlinkMacSystemFont", "Malgun Gothic", "sans-serif"]
+          },
+          colors: {
+            deep: {
+              bg: "#090c14",
+              panel: "#0f1422",
+              row: "#131929",
+              rowHover: "#192136",
+              border: "#222b42",
+              text: "#f1f5f9",
+              muted: "#8a96b4",
+              blue: "#3b82f6",
+              tag: "#1b243b",
+              tagBorder: "#2c3857"
+            }
+          }
         }
-        /* Custom smooth transition for button clicks */
-        .calc-btn {
-            transition: background-color 0.15s ease, transform 0.05s ease;
-        }
-        .calc-btn:active {
-            transform: scale(0.95);
-        }
-    </style>
+      }
+    };
+  </script>
+  <style>
+    body {
+      background-color: #090c14;
+      color: #f1f5f9;
+      font-family: "Inter", "Pretendard", -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif;
+      overflow-x: hidden;
+    }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 min-h-screen flex items-center justify-center p-4">
-
-    <!-- Calculator Container -->
-    <div class="w-full max-w-sm bg-slate-800/80 backdrop-blur-xl border border-slate-700/50 shadow-2xl rounded-3xl overflow-hidden p-6">
-        
-        <!-- Header / Title -->
-        <div class="flex justify-between items-center mb-4">
-            <span class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Modern Calculator</span>
-            <div class="flex space-x-1.5">
-                <div class="w-3 h-3 rounded-full bg-rose-500/80"></div>
-                <div class="w-3 h-3 rounded-full bg-amber-500/80"></div>
-                <div class="w-3 h-3 rounded-full bg-emerald-500/80"></div>
-            </div>
+<body class="min-h-screen bg-deep-bg text-deep-text antialiased selection:bg-blue-500/30 selection:text-white">
+  <div class="w-full max-w-6xl mx-auto px-3 sm:px-6 py-5 sm:py-8">
+    <!-- 상단 헤더 & 필터/정렬 컨트롤 -->
+    <header class="bg-deep-panel border border-deep-border rounded-2xl p-4 sm:p-6 mb-4 shadow-xl">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <div class="flex items-center gap-2.5 flex-wrap">
+          <h1 class="text-lg sm:text-2xl font-extrabold tracking-tight text-white">
+            정글 카운터픽 대시보드
+          </h1>
+          <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-blue-500/15 text-blue-300 border border-blue-500/35">
+            DeepLoL 다크 · 1~5티어
+          </span>
         </div>
 
-        <!-- Display Screen -->
-        <div class="bg-slate-950/60 border border-slate-700/40 rounded-2xl p-4 mb-6 text-right flex flex-col justify-end min-h-[100px] shadow-inner">
-            <!-- Previous Operation / History -->
-            <div id="previous-operand" class="text-slate-400 text-sm h-6 overflow-x-hidden whitespace-nowrap"></div>
-            <!-- Current Input -->
-            <div id="current-operand" class="text-white text-3xl sm:text-4xl font-bold tracking-tight overflow-x-hidden whitespace-nowrap">0</div>
+        <a
+          href="https://www.deeplol.gg/champions"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold bg-deep-row hover:bg-deep-rowHover text-blue-300 hover:text-blue-200 border border-deep-border transition-colors w-fit"
+        >
+          <span>DeepLoL 챔피언 통계</span>
+          <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+
+      <!-- 왼쪽 상대 챔피언 검색창 -->
+      <div class="relative mb-4">
+        <input
+          type="text"
+          id="searchInput"
+          autocomplete="off"
+          placeholder="왼쪽 상대 챔피언 이름 또는 한글 초성 검색 (예: ㄴㅍㄹ, ㅅㅉㅇ, 리신, 자이라)"
+          class="w-full bg-deep-bg border border-deep-border focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl pl-4 pr-11 py-3 text-sm sm:text-base text-white placeholder-deep-muted outline-none transition-all"
+        />
+        <button
+          type="button"
+          id="clearSearchBtn"
+          aria-label="검색어 지우기"
+          class="hidden absolute right-3 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-lg text-xs font-semibold text-deep-muted hover:text-white bg-deep-row hover:bg-deep-rowHover border border-deep-border cursor-pointer transition-colors"
+        >
+          초기화
+        </button>
+      </div>
+
+      <!-- 티어 필터 & 정렬 버튼 -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div class="flex items-center gap-1.5 flex-wrap" id="tierGroup" role="group" aria-label="티어 필터">
+          <button type="button" data-tier="ALL" class="tier-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer"></button>
+          <button type="button" data-tier="1" class="tier-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer"></button>
+          <button type="button" data-tier="2" class="tier-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer"></button>
+          <button type="button" data-tier="3" class="tier-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer"></button>
+          <button type="button" data-tier="4" class="tier-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer"></button>
+          <button type="button" data-tier="5" class="tier-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer"></button>
         </div>
 
-        <!-- Keypad Grid -->
-        <div class="grid grid-cols-4 gap-3">
-            <!-- Row 1: Clear, Delete, Percentage, Divide -->
-            <button onclick="clearAll()" class="calc-btn bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 font-semibold py-4 rounded-2xl text-lg border border-rose-500/20">AC</button>
-            <button onclick="deleteDigit()" class="calc-btn bg-slate-700/40 hover:bg-slate-700/70 text-slate-300 font-semibold py-4 rounded-2xl text-lg flex items-center justify-center border border-slate-600/30">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414-6.414a2 2 0 011.414-.586H19a2 2 0 012 2v12a2 2 0 01-2 2h-8.172a2 2 0 01-1.414-.586L3 12z" />
-                </svg>
-            </button>
-            <button onclick="appendPercent()" class="calc-btn bg-slate-700/40 hover:bg-slate-700/70 text-slate-300 font-semibold py-4 rounded-2xl text-lg border border-slate-600/30">%</button>
-            <button onclick="appendOperator('÷')" class="calc-btn bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 font-semibold py-4 rounded-2xl text-xl border border-indigo-500/30">÷</button>
-
-            <!-- Row 2: 7, 8, 9, Multiply -->
-            <button onclick="appendNumber('7')" class="calc-btn bg-slate-700/20 hover:bg-slate-700/40 text-white font-semibold py-4 rounded-2xl text-xl border border-slate-700/50">7</button>
-            <button onclick="appendNumber('8')" class="calc-btn bg-slate-700/20 hover:bg-slate-700/40 text-white font-semibold py-4 rounded-2xl text-xl border border-slate-700/50">8</button>
-            <button onclick="appendNumber('9')" class="calc-btn bg-slate-700/20 hover:bg-slate-700/40 text-white font-semibold py-4 rounded-2xl text-xl border border-slate-700/50">9</button>
-            <button onclick="appendOperator('×')" class="calc-btn bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 font-semibold py-4 rounded-2xl text-xl border border-indigo-500/30">×</button>
-
-            <!-- Row 3: 4, 5, 6, Subtract -->
-            <button onclick="appendNumber('4')" class="calc-btn bg-slate-700/20 hover:bg-slate-700/40 text-white font-semibold py-4 rounded-2xl text-xl border border-slate-700/50">4</button>
-            <button onclick="appendNumber('5')" class="calc-btn bg-slate-700/20 hover:bg-slate-700/40 text-white font-semibold py-4 rounded-2xl text-xl border border-slate-700/50">5</button>
-            <button onclick="appendNumber('6')" class="calc-btn bg-slate-700/20 hover:bg-slate-700/40 text-white font-semibold py-4 rounded-2xl text-xl border border-slate-700/50">6</button>
-            <button onclick="appendOperator('-')" class="calc-btn bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 font-semibold py-4 rounded-2xl text-xl border border-indigo-500/30">-</button>
-
-            <!-- Row 4: 1, 2, 3, Add -->
-            <button onclick="appendNumber('1')" class="calc-btn bg-slate-700/20 hover:bg-slate-700/40 text-white font-semibold py-4 rounded-2xl text-xl border border-slate-700/50">1</button>
-            <button onclick="appendNumber('2')" class="calc-btn bg-slate-700/20 hover:bg-slate-700/40 text-white font-semibold py-4 rounded-2xl text-xl border border-slate-700/50">2</button>
-            <button onclick="appendNumber('3')" class="calc-btn bg-slate-700/20 hover:bg-slate-700/40 text-white font-semibold py-4 rounded-2xl text-xl border border-slate-700/50">3</button>
-            <button onclick="appendOperator('+')" class="calc-btn bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 font-semibold py-4 rounded-2xl text-xl border border-indigo-500/30">+</button>
-
-            <!-- Row 5: 0, Dot, Equals -->
-            <button onclick="appendNumber('0')" class="calc-btn bg-slate-700/20 hover:bg-slate-700/40 text-white font-semibold py-4 rounded-2xl text-xl border border-slate-700/50 col-span-2">0</button>
-            <button onclick="appendDot()" class="calc-btn bg-slate-700/20 hover:bg-slate-700/40 text-white font-semibold py-4 rounded-2xl text-xl border border-slate-700/50">.</button>
-            <button onclick="compute()" class="calc-btn bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-4 rounded-2xl text-xl shadow-lg shadow-indigo-600/30">=</button>
+        <div class="flex items-center gap-1.5 flex-wrap" id="sortGroup" role="group" aria-label="정렬 기준">
+          <button type="button" data-sort="TIER" class="sort-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold border transition-all cursor-pointer"></button>
+          <button type="button" data-sort="DEFAULT" class="sort-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold border transition-all cursor-pointer"></button>
+          <button type="button" data-sort="ALPHA" class="sort-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold border transition-all cursor-pointer"></button>
         </div>
+      </div>
+    </header>
+
+    <!-- 상태 요약 바 -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1 mb-3 text-xs sm:text-sm text-deep-muted">
+      <div id="summaryText" class="font-medium">불러오는 중...</div>
+      <div class="flex items-center gap-2 flex-wrap">
+        <span id="ddragonPatchBadge" class="text-xs text-deep-muted">DDragon 패치 확인 중...</span>
+        <span>·</span>
+        <span>티어 배지는 왼쪽 상대 챔피언에만 표시됩니다</span>
+      </div>
     </div>
 
-    <!-- Script Logic -->
-    <script>
-        let currentOperandText = '0';
-        let previousOperandText = '';
-        let operation = null;
-        let resetScreen = false;
+    <!-- 데스크톱 1줄 컬럼 헤더 -->
+    <div class="hidden md:grid grid-cols-[minmax(250px,1fr)_minmax(0,1.65fr)] items-center px-5 py-2.5 mb-2 rounded-xl bg-deep-panel/80 border border-deep-border/70 text-xs font-bold text-deep-muted tracking-wider">
+      <span>티어 · 상대 챔피언 (ENEMY JUNGLE)</span>
+      <span class="text-right">추천 카운터픽 (COUNTER PICKS)</span>
+    </div>
 
-        const currentOperandEl = document.getElementById('current-operand');
-        const previousOperandEl = document.getElementById('previous-operand');
+    <!-- 1줄 가로 카드 리스트 -->
+    <main id="matchupList" class="flex flex-col gap-2.5"></main>
 
-        function updateDisplay() {
-            currentOperandEl.innerText = currentOperandText;
-            previousOperandEl.innerText = previousOperandText;
+    <!-- 빈 결과 안내 -->
+    <div id="emptyState" class="hidden bg-deep-panel border border-deep-border rounded-2xl py-14 px-6 text-center mt-4">
+      <p class="text-deep-text font-semibold text-base mb-1">조건에 맞는 상대 챔피언이 없습니다.</p>
+      <p class="text-deep-muted text-sm mb-4">검색어 또는 선택된 티어 필터를 초기화해 보세요.</p>
+      <button
+        type="button"
+        id="resetFiltersBtn"
+        class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold transition-colors cursor-pointer"
+      >
+        전체 초기화
+      </button>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * 1티어 ~ 5티어 전체 58개 정글 챔피언 티어 맵
+     */
+    const JUNGLE_TIER_MAP = {
+      // 1티어 (3명)
+      "리 신": 1,
+      "니달리": 1,
+      "자이라": 1,
+
+      // 2티어 (16명)
+      "나피리": 2,
+      "탈리야": 2,
+      "오공": 2,
+      "바이": 2,
+      "엘리스": 2,
+      "사일러스": 2,
+      "릴리아": 2,
+      "자크": 2,
+      "렉사이": 2,
+      "신 짜오": 2,
+      "자르반 4세": 2,
+      "워윅": 2,
+      "스카너": 2,
+      "자헨": 2,
+      "에코": 2,
+      "킨드레드": 2,
+
+      // 3티어 (14명)
+      "람머스": 3,
+      "초가스": 3,
+      "브라이어": 3,
+      "탈론": 3,
+      "이블린": 3,
+      "아트록스": 3,
+      "피들스틱": 3,
+      "헤카림": 3,
+      "케인": 3,
+      "세주아니": 3,
+      "카서스": 3,
+      "카직스": 3,
+      "그라가스": 3,
+      "누누와 윌럼프": 3,
+
+      // 4티어 (19명)
+      "그레이브즈": 4,
+      "아이번": 4,
+      "뽀삐": 4,
+      "녹턴": 4,
+      "벨베스": 4,
+      "비에고": 4,
+      "렝가": 4,
+      "키아나": 4,
+      "우디르": 4,
+      "제드": 4,
+      "마스터 이": 4,
+      "샤코": 4,
+      "판테온": 4,
+      "피즈": 4,
+      "암베사": 4,
+      "제이스": 4,
+      "로크": 4,
+      "트런들": 4,
+      "쉬바나": 4,
+
+      // 5티어 (6명)
+      "퀸": 5,
+      "그웬": 5,
+      "마오카이": 5,
+      "다이애나": 5,
+      "잭스": 5,
+      "아무무": 5
+    };
+
+    /**
+     * 챔피언 표기 변형/별칭 정규화 맵
+     */
+    const CHAMPION_ALIAS_MAP = {
+      "다이에나": "다이애나",
+      "다이애나": "다이애나",
+      "신짜오": "신 짜오",
+      "신 짜오": "신 짜오",
+      "탈리아": "탈리야",
+      "탈리야": "탈리야",
+      "그브": "그레이브즈",
+      "그레이브즈": "그레이브즈",
+      "킨드": "킨드레드",
+      "킨드레드": "킨드레드",
+      "쟈크": "자크",
+      "자크": "자크",
+      "누누": "누누와 윌럼프",
+      "누누와 윌럼프": "누누와 윌럼프",
+      "자르반": "자르반 4세",
+      "자르반 4세": "자르반 4세",
+      "마스터이": "마스터 이",
+      "마스터 이": "마스터 이",
+      "피들": "피들스틱",
+      "피들스틱": "피들스틱",
+      "리신": "리 신",
+      "리 신": "리 신",
+      "나서스": "나서스",
+      "브랜드": "브랜드"
+    };
+
+    /**
+     * 라이엇 Data Dragon 공식 챔피언 ID 매핑
+     */
+    const CHAMPION_DDRAGON_ID_MAP = {
+      "리 신": "LeeSin",
+      "리신": "LeeSin",
+      "니달리": "Nidalee",
+      "자이라": "Zyra",
+      "나피리": "Naafiri",
+      "탈리야": "Taliyah",
+      "탈리아": "Taliyah",
+      "오공": "MonkeyKing",
+      "바이": "Vi",
+      "엘리스": "Elise",
+      "사일러스": "Sylas",
+      "릴리아": "Lillia",
+      "자크": "Zac",
+      "쟈크": "Zac",
+      "렉사이": "RekSai",
+      "신 짜오": "XinZhao",
+      "신짜오": "XinZhao",
+      "자르반 4세": "JarvanIV",
+      "자르반": "JarvanIV",
+      "워윅": "Warwick",
+      "스카너": "Skarner",
+      "자헨": "Zaheen",
+      "에코": "Ekko",
+      "킨드레드": "Kindred",
+      "킨드": "Kindred",
+      "람머스": "Rammus",
+      "초가스": "Chogath",
+      "브라이어": "Briar",
+      "탈론": "Talon",
+      "이블린": "Evelynn",
+      "아트록스": "Aatrox",
+      "피들스틱": "Fiddlesticks",
+      "피들": "Fiddlesticks",
+      "헤카림": "Hecarim",
+      "케인": "Kayn",
+      "세주아니": "Sejuani",
+      "카서스": "Karthus",
+      "카직스": "Khazix",
+      "그라가스": "Gragas",
+      "누누와 윌럼프": "Nunu",
+      "누누": "Nunu",
+      "그레이브즈": "Graves",
+      "그브": "Graves",
+      "아이번": "Ivern",
+      "뽀삐": "Poppy",
+      "녹턴": "Nocturne",
+      "벨베스": "Belveth",
+      "비에고": "Viego",
+      "렝가": "Rengar",
+      "키아나": "Qiyana",
+      "우디르": "Udyr",
+      "제드": "Zed",
+      "마스터 이": "MasterYi",
+      "마스터이": "MasterYi",
+      "샤코": "Shaco",
+      "판테온": "Pantheon",
+      "피즈": "Fizz",
+      "암베사": "Ambessa",
+      "제이스": "Jayce",
+      "로크": "Roku",
+      "트런들": "Trundle",
+      "쉬바나": "Shyvana",
+      "퀸": "Quinn",
+      "그웬": "Gwen",
+      "마오카이": "Maokai",
+      "다이애나": "Diana",
+      "다이에나": "Diana",
+      "잭스": "Jax",
+      "아무무": "Amumu",
+      "나서스": "Nasus",
+      "브랜드": "Brand"
+    };
+
+    const DDRAGON_FALLBACK_VERSIONS = ["16.1.1", "15.1.1", "14.24.1"];
+    let activeDDragonVersion = DDRAGON_FALLBACK_VERSIONS[0];
+
+    function getChampionSquareIconUrl(name, version = activeDDragonVersion) {
+      const canonical = CHAMPION_ALIAS_MAP[name] || name;
+      const ddragonId = CHAMPION_DDRAGON_ID_MAP[name] || CHAMPION_DDRAGON_ID_MAP[canonical];
+      if (!ddragonId) return "";
+      return `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${ddragonId}.png`;
+    }
+
+    /**
+     * 정글 카운터픽 데이터 (우측 카운터픽 태그에는 티어를 붙이지 않음)
+     */
+    const RAW_COUNTER_MATCHUPS = [
+      { target: "다이에나", counters: ["녹턴"] },
+      { target: "나피리", counters: ["녹턴"] },
+      { target: "신짜오", counters: ["녹턴", "트런들", "카직스"] },
+      { target: "릴리아", counters: ["녹턴", "암베사", "자르반"] },
+      { target: "제이스", counters: ["녹턴", "신짜오"] },
+      { target: "스카너", counters: ["녹턴"] },
+      { target: "탈리야", counters: ["녹턴", "자르반"] },
+      { target: "자이라", counters: ["녹턴", "샤코"] },
+      { target: "퀸", counters: ["녹턴"] },
+      { target: "바이", counters: ["자이라"] },
+      { target: "니달리", counters: ["자이라", "다이에나"] },
+      { target: "엘리스", counters: ["자이라", "나피리", "카서스"] },
+      { target: "오공", counters: ["자이라", "탈리아", "신짜오"] },
+      { target: "워윅", counters: ["자이라", "탈리아", "카서스"] },
+      { target: "그레이브즈", counters: ["자이라", "카서스", "브랜드"] },
+      { target: "판테온", counters: ["자이라", "신짜오", "오공", "브랜드", "탈리아"] },
+      { target: "브라이어", counters: ["자이라", "탈리아"] },
+      { target: "리신", counters: ["뽀삐", "바이"] },
+      { target: "벨베스", counters: ["뽀삐", "탈리아"] },
+      { target: "렉사이", counters: ["그브", "탈리아", "판테온"] },
+      { target: "사일러스", counters: ["판테온"] },
+      { target: "녹턴", counters: ["리신"] },
+      { target: "케인", counters: ["리신", "킨드레드"] },
+      { target: "탈론", counters: ["리신", "암베사"] },
+      { target: "나서스", counters: ["녹턴", "신짜오", "워윅"] },
+      { target: "킨드레드", counters: ["트런들", "리신"] },
+      { target: "헤카림", counters: ["그브", "킨드", "비에고"] },
+      { target: "마스터이", counters: ["리신"] },
+      { target: "카직스", counters: ["리신", "암베사"] },
+      { target: "쟈크", counters: ["뽀삐", "리신"] },
+      { target: "샤코", counters: ["그브"] },
+      { target: "자르반", counters: ["리신"] },
+      { target: "에코", counters: ["사일러스"] },
+      { target: "비에고", counters: ["리신"] },
+      { target: "로크", counters: ["리신"] },
+      { target: "키아나", counters: ["판테온", "아무무"] },
+      { target: "아트록스", counters: ["신짜오"] },
+      { target: "카서스", counters: ["케인"] },
+      { target: "이블린", counters: ["리신", "헤카림"] },
+      { target: "누누", counters: ["아무무", "세주아니", "스카너"] },
+      { target: "우디르", counters: ["리신"] },
+      { target: "쉬바나", counters: ["리신"] },
+      { target: "잭스", counters: ["릴리아", "초가스"] },
+      { target: "피즈", counters: ["신짜오"] },
+      { target: "암베사", counters: ["뽀삐", "그레이브즈"] },
+      { target: "뽀삐", counters: ["트런들"] },
+      { target: "람머스", counters: ["릴리아"] },
+      { target: "세주아니", counters: ["녹턴", "신짜오", "워윅"] },
+      { target: "피들", counters: ["케인"] },
+      { target: "제드", counters: ["리신"] },
+      { target: "렝가", counters: ["람머스", "세주아니", "아무무"] }
+    ];
+
+    function resolveTier(name) {
+      const canonical = CHAMPION_ALIAS_MAP[name] || name;
+      return JUNGLE_TIER_MAP[canonical] || 5;
+    }
+
+    const MATCHUPS = RAW_COUNTER_MATCHUPS.map((entry, idx) => ({
+      order: idx,
+      target: entry.target,
+      tier: resolveTier(entry.target),
+      counters: entry.counters
+    }));
+
+    // 티어순(1티어 -> 5티어)을 기본 베이스로 삼되, 동일 티어 내에서는 원래 순서를 유지
+    const TIER_BASE_MATCHUPS = [...MATCHUPS].sort(
+      (a, b) => a.tier - b.tier || a.order - b.order
+    );
+
+    // 한글 초성 추출 유틸리티
+    const CHOSUNG_TABLE = [
+      "ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ",
+      "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"
+    ];
+
+    function extractChosung(text) {
+      let out = "";
+      for (let i = 0; i < text.length; i++) {
+        const code = text.charCodeAt(i);
+        if (code >= 0xAC00 && code <= 0xD7A3) {
+          out += CHOSUNG_TABLE[Math.floor((code - 0xAC00) / 588)];
+        } else {
+          out += text[i];
         }
+      }
+      return out;
+    }
 
-        function appendNumber(number) {
-            if (currentOperandText === '0' || resetScreen) {
-                currentOperandText = number;
-                resetScreen = false;
-            } else {
-                currentOperandText += number;
-            }
-            updateDisplay();
+    function isOnlyChosung(text) {
+      return /^[ㄱ-ㅎ]+$/.test(text);
+    }
+
+    /**
+     * 왼쪽 상대 챔피언 이름 및 한글 초성에 대해서만 검색 매칭 수행
+     */
+    function matchesOpponentChampion(targetName, rawQuery) {
+      const compactQuery = rawQuery.replace(/\s+/g, "").toLowerCase();
+      if (!compactQuery) return true;
+
+      const canonicalName = CHAMPION_ALIAS_MAP[targetName] || targetName;
+      const candidates = [
+        targetName.replace(/\s+/g, "").toLowerCase(),
+        canonicalName.replace(/\s+/g, "").toLowerCase()
+      ];
+
+      for (const cand of candidates) {
+        if (cand.includes(compactQuery)) return true;
+        if (isOnlyChosung(compactQuery) && extractChosung(cand).includes(compactQuery)) {
+          return true;
         }
+      }
+      return false;
+    }
 
-        function appendDot() {
-            if (resetScreen) {
-                currentOperandText = '0.';
-                resetScreen = false;
-                updateDisplay();
-                return;
-            }
-            if (!currentOperandText.includes('.')) {
-                currentOperandText += '.';
-            }
-            updateDisplay();
-        }
+    function getTierBadgeStyle(tier) {
+      switch (tier) {
+        case 1:
+          return "bg-rose-500/15 text-rose-300 border-rose-500/40";
+        case 2:
+          return "bg-blue-500/15 text-blue-300 border-blue-500/40";
+        case 3:
+          return "bg-teal-400/15 text-teal-300 border-teal-400/40";
+        case 4:
+          return "bg-slate-400/15 text-slate-300 border-slate-400/35";
+        default:
+          return "bg-zinc-500/15 text-zinc-400 border-zinc-500/30";
+      }
+    }
 
-        function appendOperator(op) {
-            if (operation !== null) compute();
-            previousOperandText = `${currentOperandText} ${op}`;
-            operation = op;
-            resetScreen = true;
-            updateDisplay();
-        }
+    function getAvatarPalette(name) {
+      let hash = 0;
+      for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const palettes = [
+        { from: "#26365c", to: "#151d33", ring: "#4f86ff" },
+        { from: "#4a2338", to: "#24121d", ring: "#ff5d6c" },
+        { from: "#1b4347", to: "#0f2427", ring: "#2dd4bf" },
+        { from: "#3b2c5e", to: "#1d1630", ring: "#a78bfa" },
+        { from: "#4d381e", to: "#261b0e", ring: "#fbbf24" }
+      ];
+      return palettes[Math.abs(hash) % palettes.length];
+    }
 
-        function compute() {
-            let computation;
-            const prev = parseFloat(previousOperandText);
-            const current = parseFloat(currentOperandText);
-            if (isNaN(prev) || isNaN(current)) return;
+    function createInitialFallbackSvg(label, sizeClass) {
+      const char = (label || "?").trim().charAt(0);
+      const pal = getAvatarPalette(label);
+      const gradId = `g_${char.charCodeAt(0)}_${Math.abs(label.length * 17)}`;
+      return `
+        <svg class="${sizeClass} rounded-xl shrink-0 select-none" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="${gradId}" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="${pal.from}" />
+              <stop offset="100%" stop-color="${pal.to}" />
+            </linearGradient>
+          </defs>
+          <rect width="40" height="40" rx="11" fill="url(#${gradId})" stroke="${pal.ring}" stroke-opacity="0.45" stroke-width="1.5" />
+          <text x="20" y="25" text-anchor="middle" fill="#f8fafc" font-size="15" font-weight="800" font-family="Inter, Pretendard, sans-serif">${char}</text>
+        </svg>
+      `;
+    }
 
-            switch (operation) {
-                case '+':
-                    computation = prev + current;
-                    break;
-                case '-':
-                    computation = prev - current;
-                    break;
-                case '×':
-                    computation = prev * current;
-                    break;
-                case '÷':
-                    if (current === 0) {
-                        showError("0으로 나눌 수 없습니다");
-                        return;
-                    }
-                    computation = prev / current;
-                    break;
-                default:
-                    return;
-            }
+    function createChampionIconHtml(name, sizeClass, imgClass) {
+      const iconUrl = getChampionSquareIconUrl(name);
+      const fallbackSvg = createInitialFallbackSvg(name, sizeClass);
+      if (!iconUrl) {
+        return `<span class="inline-flex items-center justify-center shrink-0">${fallbackSvg}</span>`;
+      }
 
-            currentOperandText = parseFloat(computation.toFixed(10)).toString();
-            operation = null;
-            previousOperandText = '';
-            resetScreen = true;
-            updateDisplay();
-        }
+      const fallbackVersion = DDRAGON_FALLBACK_VERSIONS[DDRAGON_FALLBACK_VERSIONS.length - 1];
+      const fallbackUrl = getChampionSquareIconUrl(name, fallbackVersion);
 
-        function appendPercent() {
-            const current = parseFloat(currentOperandText);
-            if (isNaN(current)) return;
-            currentOperandText = (current / 100).toString();
-            updateDisplay();
-        }
+      return `
+        <span class="relative inline-flex items-center justify-center ${sizeClass} rounded-xl overflow-hidden bg-deep-panel border border-deep-border shrink-0">
+          <img
+            src="${iconUrl}"
+            alt="${name}"
+            loading="lazy"
+            decoding="async"
+            class="${imgClass} object-cover"
+            onerror="if (!this.dataset.fb) { this.dataset.fb = '1'; this.src = '${fallbackUrl}'; } else { this.style.display = 'none'; this.nextElementSibling.style.display = 'flex'; }"
+          />
+          <span class="hidden w-full h-full items-center justify-center">${fallbackSvg}</span>
+        </span>
+      `;
+    }
 
-        function clearAll() {
-            currentOperandText = '0';
-            previousOperandText = '';
-            operation = null;
-            updateDisplay();
-        }
+    // 초기 기본 베이스는 '티어순' (TIER), '티어순' 버튼 활성 상태
+    let selectedTier = "ALL";
+    let selectedSort = "TIER";
 
-        function deleteDigit() {
-            if (resetScreen) return;
-            if (currentOperandText.length === 1 || (currentOperandText.length === 2 && currentOperandText.startsWith('-'))) {
-                currentOperandText = '0';
-            } else {
-                currentOperandText = currentOperandText.slice(0, -1);
-            }
-            updateDisplay();
-        }
+    const searchInput = document.getElementById("searchInput");
+    const clearSearchBtn = document.getElementById("clearSearchBtn");
+    const matchupList = document.getElementById("matchupList");
+    const summaryText = document.getElementById("summaryText");
+    const ddragonPatchBadge = document.getElementById("ddragonPatchBadge");
+    const emptyState = document.getElementById("emptyState");
+    const resetFiltersBtn = document.getElementById("resetFiltersBtn");
+    const tierButtons = document.querySelectorAll(".tier-btn");
+    const sortButtons = document.querySelectorAll(".sort-btn");
 
-        function showError(msg) {
-            currentOperandText = msg;
-            previousOperandText = '';
-            operation = null;
-            resetScreen = true;
-            updateDisplay();
-            setTimeout(() => {
-                clearAll();
-            }, 1500);
-        }
+    const TIER_LABELS = {
+      ALL: "전체",
+      "1": "1티어",
+      "2": "2티어",
+      "3": "3티어",
+      "4": "4티어",
+      "5": "5티어"
+    };
 
-        // Keyboard Support
-        window.addEventListener('keydown', e => {
-            if (e.key >= 0 && e.key <= 9) appendNumber(e.key);
-            if (e.key === '.') appendDot();
-            if (e.key === '=' || e.key === 'Enter') compute();
-            if (e.key === 'Backspace') deleteDigit();
-            if (e.key === 'Escape') clearAll();
-            if (e.key === '+') appendOperator('+');
-            if (e.key === '-') appendOperator('-');
-            if (e.key === '*') appendOperator('×');
-            if (e.key === '/') {
-                e.preventDefault();
-                appendOperator('÷');
-            }
-            if (e.key === '%') appendPercent();
+    const SORT_LABELS = {
+      TIER: "티어순",
+      DEFAULT: "기본순",
+      ALPHA: "가나다순"
+    };
+
+    function syncButtonStates() {
+      tierButtons.forEach((btn) => {
+        const key = btn.dataset.tier;
+        const active = key === selectedTier;
+        btn.textContent = TIER_LABELS[key] || key;
+        btn.className = active
+          ? "tier-btn active px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer bg-blue-600 border-blue-500 text-white shadow-sm"
+          : "tier-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer bg-deep-row border-deep-border text-deep-muted hover:bg-deep-rowHover hover:text-white";
+      });
+
+      sortButtons.forEach((btn) => {
+        const key = btn.dataset.sort;
+        const active = key === selectedSort;
+        btn.textContent = SORT_LABELS[key] || key;
+        btn.className = active
+          ? "sort-btn active px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold border transition-all cursor-pointer bg-blue-600 border-blue-500 text-white shadow-sm"
+          : "sort-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold border transition-all cursor-pointer bg-deep-row border-deep-border text-deep-muted hover:bg-deep-rowHover hover:text-white";
+      });
+    }
+
+    function renderMatchups() {
+      try {
+        const query = searchInput.value.trim();
+        clearSearchBtn.classList.toggle("hidden", query.length === 0);
+
+        let rows = TIER_BASE_MATCHUPS.filter((item) => {
+          const tierMatched = selectedTier === "ALL" || String(item.tier) === selectedTier;
+          const nameMatched = matchesOpponentChampion(item.target, query);
+          return tierMatched && nameMatched;
         });
 
-        updateDisplay();
-    </script>
+        if (selectedSort === "TIER") {
+          rows = [...rows].sort((a, b) => a.tier - b.tier || a.order - b.order);
+        } else if (selectedSort === "DEFAULT") {
+          rows = [...rows].sort((a, b) => a.order - b.order);
+        } else if (selectedSort === "ALPHA") {
+          rows = [...rows].sort((a, b) => a.target.localeCompare(b.target, "ko"));
+        }
+
+        const tierLabel = selectedTier === "ALL" ? "전체 티어" : `${selectedTier}티어`;
+        summaryText.textContent = `표시 ${rows.length}개 / 전체 ${MATCHUPS.length}개 (${tierLabel} · 정글 티어 DB 58명)`;
+
+        matchupList.innerHTML = "";
+
+        if (rows.length === 0) {
+          emptyState.classList.remove("hidden");
+          return;
+        }
+        emptyState.classList.add("hidden");
+
+        const fragment = document.createDocumentFragment();
+
+        rows.forEach((item) => {
+          const card = document.createElement("article");
+          card.className =
+            "bg-deep-row hover:bg-deep-rowHover border border-deep-border hover:border-blue-500/40 rounded-2xl px-3.5 sm:px-5 py-3 transition-all flex flex-col md:flex-row md:items-center justify-between gap-2.5 md:gap-4";
+
+          const tierBadgeClass = getTierBadgeStyle(item.tier);
+          const leftIconHtml = createChampionIconHtml(
+            item.target,
+            "w-9 h-9 sm:w-10 sm:h-10",
+            "w-9 h-9 sm:w-10 sm:h-10"
+          );
+
+          const counterTagsHtml = item.counters
+            .map((counterName) => {
+              const miniIconHtml = createChampionIconHtml(
+                counterName,
+                "w-5 h-5 sm:w-6 sm:h-6",
+                "w-5 h-5 sm:w-6 sm:h-6"
+              );
+              return `
+                <span class="inline-flex items-center gap-1.5 bg-deep-tag border border-deep-tagBorder rounded-xl px-2.5 py-1 text-xs sm:text-sm font-semibold text-slate-100 whitespace-nowrap shrink-0">
+                  ${miniIconHtml}
+                  <span>${counterName}</span>
+                </span>
+              `;
+            })
+            .join("");
+
+          card.innerHTML = `
+            <div class="flex items-center gap-2.5 sm:gap-3 min-w-0 shrink-0">
+              <span class="inline-flex items-center justify-center min-w-[52px] px-2.5 py-1 rounded-lg text-xs font-extrabold border ${tierBadgeClass} shrink-0">
+                ${item.tier}티어
+              </span>
+              ${leftIconHtml}
+              <span class="text-sm sm:text-base font-bold text-white whitespace-nowrap">
+                ${item.target}
+              </span>
+            </div>
+            <div class="flex items-center md:justify-end flex-wrap gap-1.5 sm:gap-2">
+              ${counterTagsHtml}
+            </div>
+          `;
+
+          fragment.appendChild(card);
+        });
+
+        matchupList.appendChild(fragment);
+      } catch (err) {
+        matchupList.innerHTML = `<div class="bg-rose-950/40 border border-rose-500/40 text-rose-200 rounded-xl p-4 text-sm">목록 렌더링 중 오류가 발생했습니다: ${err.message}</div>`;
+      }
+    }
+
+    async function resolveLatestDDragonVersion() {
+      try {
+        const res = await fetch("https://ddragon.leagueoflegends.com/api/versions.json", {
+          cache: "no-store"
+        });
+        if (!res.ok) throw new Error("versions.json 응답 실패");
+        const versions = await res.json();
+        if (Array.isArray(versions) && versions.length > 0 && typeof versions[0] === "string") {
+          activeDDragonVersion = versions[0];
+          ddragonPatchBadge.textContent = `DDragon 패치 ${activeDDragonVersion}`;
+          renderMatchups();
+          return;
+        }
+        throw new Error("버전 목록 형식 오류");
+      } catch (_err) {
+        activeDDragonVersion = DDRAGON_FALLBACK_VERSIONS[0];
+        ddragonPatchBadge.textContent = `DDragon 패치 ${activeDDragonVersion} (폴백)`;
+        renderMatchups();
+      }
+    }
+
+    searchInput.addEventListener("input", renderMatchups);
+
+    clearSearchBtn.addEventListener("click", () => {
+      searchInput.value = "";
+      renderMatchups();
+      searchInput.focus();
+    });
+
+    tierButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        selectedTier = btn.dataset.tier;
+        syncButtonStates();
+        renderMatchups();
+      });
+    });
+
+    sortButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        selectedSort = btn.dataset.sort;
+        syncButtonStates();
+        renderMatchups();
+      });
+    });
+
+    resetFiltersBtn.addEventListener("click", () => {
+      searchInput.value = "";
+      selectedTier = "ALL";
+      selectedSort = "TIER";
+      syncButtonStates();
+      renderMatchups();
+    });
+
+    syncButtonStates();
+    renderMatchups();
+    resolveLatestDDragonVersion();
+  </script>
 </body>
 </html>
